@@ -1,10 +1,13 @@
-name: Telegram Test
+name: Crypto Alerts
 
 on:
   workflow_dispatch:
 
+  schedule:
+    - cron: "*/15 * * * *"
+
 jobs:
-  test:
+  monitor:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +22,7 @@ jobs:
       - name: Zainstaluj biblioteki
         run: pip install -r requirements.txt
 
-      - name: Uruchom test
+      - name: Uruchom monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
