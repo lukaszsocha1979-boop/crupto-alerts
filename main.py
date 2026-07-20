@@ -1,3 +1,4 @@
+import os
 import requests
 import feedparser
 
@@ -5,8 +6,7 @@ from config import KEYWORDS, HIGH_PRIORITY
 from news_sources import RSS_FEEDS
 from filters import is_interesting
 from storage import already_sent, mark_sent
-
-import os
+from translator import translate
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -19,7 +19,8 @@ def send(text):
         url,
         data={
             "chat_id": CHAT_ID,
-            "text": text
+            "text": text,
+            "disable_web_page_preview": True
         }
     )
 
@@ -31,45 +32,43 @@ for rss in RSS_FEEDS:
 
         for entry in feed.entries:
 
-            title = entry.title
+            title_original = entry.title
+            title = translate(title_original)
+
             link = entry.link
 
             if already_sent(link):
                 continue
 
-            if not is_interesting(title):
+            if not is_interesting(title_original):
                 continue
 
-            title_lower = title.lower()
+            title_lower = title_original.lower()
 
-            token = None
+            token = "CRYPTO"
 
             for name, words in KEYWORDS.items():
-                for w in words:
-                    if w in title_lower:
-                        token = name
-                        break
-                if token:
+                if any(word.lower() in title_lower for word in words):
+                    token = name
                     break
 
-            priority = "🟢 WYSOKA"
+            priority = "🔴 NISKA"
 
             for word in HIGH_PRIORITY:
-                if word in title_lower:
+                if word.lower() in title_lower:
                     priority = "🟢 WYSOKA"
                     break
-            else:
-                priority = "🔴 NISKA"
 
-            msg = (
+            message = (
                 f"{priority}\n\n"
                 f"🪙 {token}\n\n"
                 f"{title}\n\n"
-                f"{link}"
+                f"🔗 {link}"
             )
 
-            send(msg)
+            send(message)
             mark_sent(link)
 
     except Exception as e:
+        print(f"Błąd RSS: {rss}")
         print(e)
