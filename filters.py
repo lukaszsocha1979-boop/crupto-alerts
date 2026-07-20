@@ -1,34 +1,12 @@
-from config import KEYWORDS, HIGH_PRIORITY
+from config import KEYWORDS
 
 
-def analyze(news):
-    alerts = []
+def is_interesting(text):
+    text = text.lower()
 
-    for item in news:
-        title = item["title"].lower()
+    for words in KEYWORDS.values():
+        for word in words:
+            if word.lower() in text:
+                return True
 
-        project = None
-
-        for token, words in KEYWORDS.items():
-            if any(w in title for w in words):
-                project = token
-                break
-
-        if not project:
-            continue
-
-        level = "🔴 NISKA"
-
-        if any(w in title for w in HIGH_PRIORITY):
-            level = "🟢 WYSOKA"
-        elif "update" in title or "launch" in title:
-            level = "🟡 ŚREDNIA"
-
-        alerts.append({
-            "project": project,
-            "level": level,
-            "title": item["title"],
-            "link": item["link"]
-        })
-
-    return alerts
+    return False
