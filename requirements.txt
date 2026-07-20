@@ -1,3 +1,5 @@
 requests
 feedparser
-python-telegram-bot==20.8
+beautifulsoup4
+lxml
+python-dateutil
