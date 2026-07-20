@@ -3,22 +3,21 @@ import os
 
 FILE = "sent.json"
 
-def load():
-    if not os.path.exists(FILE):
-        return []
 
-    with open(FILE, "r") as f:
-        return json.load(f)
+def load():
+    if os.path.exists(FILE):
+        with open(FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
 
 
 def save(data):
-    with open(FILE, "w") as f:
+    with open(FILE, "w", encoding="utf-8") as f:
         json.dump(data, f)
 
 
 def already_sent(link):
-    data = load()
-    return link in data
+    return link in load()
 
 
 def mark_sent(link):
@@ -26,5 +25,4 @@ def mark_sent(link):
 
     if link not in data:
         data.append(link)
-
-    save(data)
+        save(data)
