@@ -1,51 +1,75 @@
-import os
 import requests
+import feedparser
 
-from news_sources import get_news
-from filters import analyze
+from config import KEYWORDS, HIGH_PRIORITY
+from news_sources import RSS_FEEDS
+from filters import is_interesting
 from storage import already_sent, mark_sent
+
+import os
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
-def send(message):
+def send(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
     requests.post(
         url,
         data={
             "chat_id": CHAT_ID,
-            "text": message
+            "text": text
         }
     )
 
 
-news = get_news()
-alerts = analyze(news)
+for rss in RSS_FEEDS:
 
-count = 0
-MAX_ALERTS = 10
+    try:
+        feed = feedparser.parse(rss)
 
-for alert in alerts:
+        for entry in feed.entries:
 
-    if already_sent(alert["link"]):
-        continue
+            title = entry.title
+            link = entry.link
 
-    text = (
-        f"{alert['level']}\n\n"
-        f"📌 {alert['project']}\n\n"
-        f"{alert['title']}\n\n"
-        f"🔗 {alert['link']}"
-    )
+            if already_sent(link):
+                continue
 
-    send(text)
+            if not is_interesting(title):
+                continue
 
-    mark_sent(alert["link"])
+            title_lower = title.lower()
 
-    count += 1
+            token = None
 
-    if count >= MAX_ALERTS:
-        break
+            for name, words in KEYWORDS.items():
+                for w in words:
+                    if w in title_lower:
+                        token = name
+                        break
+                if token:
+                    break
 
-print(f"Wysłano {count} nowych alertów.")
+            priority = "🟢 WYSOKA"
+
+            for word in HIGH_PRIORITY:
+                if word in title_lower:
+                    priority = "🟢 WYSOKA"
+                    break
+            else:
+                priority = "🔴 NISKA"
+
+            msg = (
+                f"{priority}\n\n"
+                f"🪙 {token}\n\n"
+                f"{title}\n\n"
+                f"{link}"
+            )
+
+            send(msg)
+            mark_sent(link)
+
+    except Exception as e:
+        print(e)
