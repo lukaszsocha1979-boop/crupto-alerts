@@ -80,16 +80,16 @@ for feed_url in RSS_FEEDS:
 ####################################################
 
 market_cache = load_market()
-
 new_cache = {}
 
-for symbol, address in TOKENS.items():
+for symbol, token in TOKENS.items():
 
     print("Market:", symbol)
 
-    data = get_token(address)
+    data = get_token(token)
 
     if data is None:
+        print(f"Brak danych dla {symbol}")
         continue
 
     old = market_cache.get(symbol)
@@ -103,15 +103,5 @@ for symbol, address in TOKENS.items():
     new_cache[symbol] = data
 
 save_market(new_cache)
-from market import get_token
 
-print("===== MARKET =====")
-
-try:
-    btc = get_token({"type": "coingecko", "id": "bitcoin"})
-    print("BTC:", btc)
-except Exception as e:
-    print("Błąd BTC:", e)
-
-print("==================")
 print("========== KONIEC ==========")
