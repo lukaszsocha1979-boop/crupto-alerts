@@ -4,14 +4,25 @@ import requests
 
 from news_sources import RSS_FEEDS
 from filters import is_interesting, get_priority
-from storage import already_sent, save_sent
 from translator import translate
+
+from storage import (
+    already_sent,
+    save_sent,
+    load_market,
+    save_market,
+)
+
+from market import get_token
+from tokens import TOKENS
+from alerts import check_alert
 
 
 def send_telegram(message):
+
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
 
-    response = requests.post(
+    requests.post(
         url,
         data={
             "chat_id": os.environ["TELEGRAM_CHAT_ID"],
@@ -21,14 +32,16 @@ def send_telegram(message):
         timeout=20,
     )
 
-    print(response.text)
 
+print("========== START ==========")
 
-print("=== Start monitora ===")
+####################################################
+# RSS
+####################################################
 
 for feed_url in RSS_FEEDS:
 
-    print(f"\nSprawdzam: {feed_url}")
+    print("RSS:", feed_url)
 
     feed = feedparser.parse(feed_url)
 
@@ -45,7 +58,6 @@ for feed_url in RSS_FEEDS:
 
         priority, score = get_priority(title)
 
-        # Pomiń mało ważne wiadomości
         if score < 4:
             continue
 
@@ -57,10 +69,39 @@ for feed_url in RSS_FEEDS:
             f"🔗 {link}"
         )
 
-        print(f"Wysyłam: {translated}")
+        print("NEWS:", translated)
 
         send_telegram(message)
 
         save_sent(link)
 
-print("\n=== Koniec monitora ===")
+####################################################
+# MARKET
+####################################################
+
+market_cache = load_market()
+
+new_cache = {}
+
+for symbol, address in TOKENS.items():
+
+    print("Market:", symbol)
+
+    data = get_token(address)
+
+    if data is None:
+        continue
+
+    old = market_cache.get(symbol)
+
+    alert = check_alert(symbol, old, data)
+
+    if alert:
+        print(alert)
+        send_telegram(alert)
+
+    new_cache[symbol] = data
+
+save_market(new_cache)
+
+print("========== KONIEC ==========")
