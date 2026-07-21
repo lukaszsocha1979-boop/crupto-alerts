@@ -20,7 +20,7 @@ def already_sent(link):
     return link in load()
 
 
-def mark_sent(link):
+def save_sent(link):
     data = load()
 
     if link not in data:
