@@ -5,25 +5,28 @@ BASE_URL = "https://api.dexscreener.com/latest/dex/tokens/"
 
 def get_token(address):
     try:
-        r = requests.get(BASE_URL + address, timeout=20)
+        response = requests.get(BASE_URL + address, timeout=20)
 
-        if r.status_code != 200:
+        if response.status_code != 200:
             return None
 
-        data = r.json()
+        data = response.json()
 
-        if not data.get("pairs"):
+        if "pairs" not in data:
+            return None
+
+        if len(data["pairs"]) == 0:
             return None
 
         pair = data["pairs"][0]
 
         return {
-            "price": float(pair["priceUsd"]),
-            "volume24h": float(pair["volume"]["h24"]),
-            "liquidity": float(pair["liquidity"]["usd"]),
-            "fdv": pair.get("fdv", 0),
-            "chain": pair["chainId"],
-            "dex": pair["dexId"]
+            "price": float(pair.get("priceUsd", 0)),
+            "volume24h": float(pair.get("volume", {}).get("h24", 0)),
+            "liquidity": float(pair.get("liquidity", {}).get("usd", 0)),
+            "fdv": float(pair.get("fdv", 0)),
+            "dex": pair.get("dexId", ""),
+            "chain": pair.get("chainId", "")
         }
 
     except Exception as e:
