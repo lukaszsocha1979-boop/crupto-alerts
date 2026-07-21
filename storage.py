@@ -1,28 +1,48 @@
 import json
 import os
 
-FILE = "sent.json"
-
-
-def load():
-    if os.path.exists(FILE):
-        with open(FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-
-def save(data):
-    with open(FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f)
+NEWS_FILE = "sent_links.json"
+MARKET_FILE = "market_cache.json"
 
 
 def already_sent(link):
-    return link in load()
+
+    if not os.path.exists(NEWS_FILE):
+        return False
+
+    with open(NEWS_FILE, "r") as f:
+        data = json.load(f)
+
+    return link in data
 
 
 def save_sent(link):
-    data = load()
 
-    if link not in data:
-        data.append(link)
-        save(data)
+    if os.path.exists(NEWS_FILE):
+
+        with open(NEWS_FILE, "r") as f:
+            data = json.load(f)
+
+    else:
+
+        data = []
+
+    data.append(link)
+
+    with open(NEWS_FILE, "w") as f:
+        json.dump(data, f)
+
+
+def load_market():
+
+    if not os.path.exists(MARKET_FILE):
+        return {}
+
+    with open(MARKET_FILE, "r") as f:
+        return json.load(f)
+
+
+def save_market(data):
+
+    with open(MARKET_FILE, "w") as f:
+        json.dump(data, f)
