@@ -1,79 +1,44 @@
-import re
+import requests
 
-TRANSLATIONS = {
-    "bitcoin": "Bitcoin",
-    "btc": "BTC",
-    "ethereum": "Ethereum",
-    "solana": "Solana",
-    "zeus": "ZEUS",
-
-    "price": "cena",
-    "prices": "ceny",
-
-    "surges": "gwałtownie rośnie",
-    "surged": "gwałtownie wzrósł",
-    "rises": "rośnie",
-    "rose": "wzrósł",
-    "falls": "spada",
-    "fell": "spadł",
-    "drops": "spada",
-    "drop": "spadek",
-
-    "launch": "uruchamia",
-    "launches": "uruchamia",
-    "launched": "uruchomił",
-
-    "announces": "ogłasza",
-    "announced": "ogłosił",
-
-    "introduces": "wprowadza",
-    "introduced": "wprowadził",
-
-    "reveals": "ujawnia",
-    "revealed": "ujawnił",
-
-    "support": "wsparcie",
-    "integration": "integracja",
-    "partnership": "partnerstwo",
-    "listing": "listing",
-    "listed": "notowany",
-
-    "exchange": "giełda",
-    "wallet": "portfel",
-    "network": "sieć",
-    "token": "token",
-    "bridge": "most",
-
-    "security": "bezpieczeństwo",
-    "hack": "atak hakerski",
-    "airdrop": "airdrop",
-
-    "proposal": "propozycja",
-    "recovery": "odzyskiwanie",
-    "attack": "atak",
-    "quantum": "kwantowy",
-    "trading": "handel",
-    "market": "rynek",
-    "fund": "fundusz",
-    "etf": "ETF",
-}
+# Darmowe serwery LibreTranslate.
+# Bot spróbuje po kolei każdego.
+SERVERS = [
+    "https://translate.terraprint.co/translate",
+    "https://translate.argosopentech.com/translate",
+]
 
 
 def translate(text):
 
-    result = text
+    if not text:
+        return text
 
-    for eng in sorted(TRANSLATIONS.keys(), key=len, reverse=True):
+    for server in SERVERS:
 
-        pl = TRANSLATIONS[eng]
+        try:
 
-        result = re.sub(
-            rf"\b{re.escape(eng)}\b",
-            pl,
-            result,
-            flags=re.IGNORECASE,
-        )
+            response = requests.post(
+                server,
+                json={
+                    "q": text,
+                    "source": "en",
+                    "target": "pl",
+                    "format": "text",
+                },
+                timeout=10,
+            )
 
-    result = re.sub(r"\s+", " ", result).strip()
+            if response.status_code == 200:
 
-    return result
+                data = response.json()
+
+                translated = data.get("translatedText")
+
+                if translated:
+                    return translated
+
+        except Exception as e:
+            print(f"Translator error ({server}): {e}")
+
+    # Awaryjnie zwracamy oryginał
+    return text
