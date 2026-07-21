@@ -27,7 +27,7 @@ def send_telegram(message):
         data={
             "chat_id": os.environ["TELEGRAM_CHAT_ID"],
             "text": message,
-            "disable_web_page_preview": False,
+            "disable_web_page_preview": True,
         },
         timeout=20,
     )
@@ -39,6 +39,9 @@ def human(value):
         return "-"
 
     value = float(value)
+
+    if value >= 1_000_000_000_000:
+        return f"{value/1_000_000_000_000:.2f}T"
 
     if value >= 1_000_000_000:
         return f"{value/1_000_000_000:.2f}B"
