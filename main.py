@@ -103,5 +103,15 @@ for symbol, address in TOKENS.items():
     new_cache[symbol] = data
 
 save_market(new_cache)
+from market import get_token
 
+print("===== MARKET =====")
+
+try:
+    btc = get_token({"type": "coingecko", "id": "bitcoin"})
+    print("BTC:", btc)
+except Exception as e:
+    print("Błąd BTC:", e)
+
+print("==================")
 print("========== KONIEC ==========")
