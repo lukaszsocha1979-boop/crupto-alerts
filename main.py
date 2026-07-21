@@ -19,7 +19,6 @@ from alerts import check_alert
 
 
 def send_telegram(message):
-
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
 
     requests.post(
@@ -82,6 +81,8 @@ for feed_url in RSS_FEEDS:
 market_cache = load_market()
 new_cache = {}
 
+market_report = ["📈 RAPORT RYNKU", ""]
+
 for symbol, token in TOKENS.items():
 
     print("Market:", symbol)
@@ -91,6 +92,27 @@ for symbol, token in TOKENS.items():
     if data is None:
         print(f"Brak danych dla {symbol}")
         continue
+
+    if symbol == "BTC":
+        market_report.extend([
+            "🟠 BTC",
+            f"💰 ${data['price']:,.2f}",
+            f"24h: {data['change24h']:+.2f}%",
+            f"MC: ${data['market_cap']:,.0f}",
+            f"Vol: ${data['volume24h']:,.0f}",
+            ""
+        ])
+
+    elif symbol == "ZEUS":
+        market_report.extend([
+            "⚡ ZEUS",
+            f"💰 ${data['price']:.8f}",
+            f"24h: {data['change24h']:+.2f}%",
+            f"MC: ${data['market_cap']:,.0f}",
+            f"Vol: ${data['volume24h']:,.0f}",
+            f"Liq: ${data.get('liquidity', 0):,.0f}",
+            ""
+        ])
 
     old = market_cache.get(symbol)
 
@@ -103,5 +125,7 @@ for symbol, token in TOKENS.items():
     new_cache[symbol] = data
 
 save_market(new_cache)
+
+send_telegram("\n".join(market_report))
 
 print("========== KONIEC ==========")
