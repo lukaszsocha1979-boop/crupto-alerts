@@ -19,6 +19,7 @@ from alerts import check_alert
 
 
 def send_telegram(message):
+
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
 
     requests.post(
@@ -30,6 +31,25 @@ def send_telegram(message):
         },
         timeout=20,
     )
+
+
+def human(value):
+
+    if value is None:
+        return "-"
+
+    value = float(value)
+
+    if value >= 1_000_000_000:
+        return f"{value/1_000_000_000:.2f}B"
+
+    if value >= 1_000_000:
+        return f"{value/1_000_000:.2f}M"
+
+    if value >= 1_000:
+        return f"{value/1_000:.2f}K"
+
+    return f"{value:.2f}"
 
 
 print("========== START ==========")
@@ -94,23 +114,25 @@ for symbol, token in TOKENS.items():
         continue
 
     if symbol == "BTC":
+
         market_report.extend([
             "🟠 BTC",
             f"💰 ${data['price']:,.2f}",
-            f"24h: {data['change24h']:+.2f}%",
-            f"MC: ${data['market_cap']:,.0f}",
-            f"Vol: ${data['volume24h']:,.0f}",
+            f"📈 24h: {data['change24h']:+.2f}%",
+            f"🏦 MC: {human(data['market_cap'])}",
+            f"📊 Vol: {human(data['volume24h'])}",
             ""
         ])
 
     elif symbol == "ZEUS":
+
         market_report.extend([
             "⚡ ZEUS",
             f"💰 ${data['price']:.8f}",
-            f"24h: {data['change24h']:+.2f}%",
-            f"MC: ${data['market_cap']:,.0f}",
-            f"Vol: ${data['volume24h']:,.0f}",
-            f"Liq: ${data.get('liquidity', 0):,.0f}",
+            f"📈 24h: {data['change24h']:+.2f}%",
+            f"🏦 MC: {human(data['market_cap'])}",
+            f"📊 Vol: {human(data['volume24h'])}",
+            f"💧 Liq: {human(data.get('liquidity', 0))}",
             ""
         ])
 
