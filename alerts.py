@@ -1,5 +1,16 @@
-PRICE_ALERT = 10      # %
-VOLUME_ALERT = 100    # %
+PRICE_ALERT = 10       # %
+VOLUME_ALERT = 100     # %
+LIQUIDITY_ALERT = 15   # %
+
+
+def percent_change(old, new):
+    if old is None or new is None:
+        return None
+
+    if old == 0:
+        return None
+
+    return ((new - old) / old) * 100
 
 
 def check_alert(symbol, old_data, new_data):
@@ -9,38 +20,68 @@ def check_alert(symbol, old_data, new_data):
 
     alerts = []
 
-    old_price = old_data["price"]
-    new_price = new_data["price"]
+    # -----------------------
+    # CENA
+    # -----------------------
 
-    if old_price > 0:
+    change = percent_change(
+        old_data.get("price"),
+        new_data.get("price"),
+    )
 
-        change = ((new_price - old_price) / old_price) * 100
+    if change is not None and abs(change) >= PRICE_ALERT:
 
-        if abs(change) >= PRICE_ALERT:
+        icon = "🚀" if change > 0 else "📉"
 
-            icon = "🚀" if change > 0 else "📉"
+        alerts.append(
+            f"{icon} {symbol}\n"
+            f"Cena: {change:+.2f}%\n"
+            f"${old_data['price']:.8f} → ${new_data['price']:.8f}"
+        )
+
+    # -----------------------
+    # WOLUMEN
+    # -----------------------
+
+    volume_change = percent_change(
+        old_data.get("volume24h"),
+        new_data.get("volume24h"),
+    )
+
+    if volume_change is not None and volume_change >= VOLUME_ALERT:
+
+        alerts.append(
+            f"📊 {symbol}\n"
+            f"Wolumen +{volume_change:.2f}%"
+        )
+
+    # -----------------------
+    # PŁYNNOŚĆ
+    # -----------------------
+
+    if (
+        "liquidity" in old_data
+        and "liquidity" in new_data
+    ):
+
+        liquidity_change = percent_change(
+            old_data["liquidity"],
+            new_data["liquidity"],
+        )
+
+        if (
+            liquidity_change is not None
+            and abs(liquidity_change) >= LIQUIDITY_ALERT
+        ):
+
+            icon = "💧"
 
             alerts.append(
                 f"{icon} {symbol}\n"
-                f"Cena zmieniła się o {change:.2f}%\n"
-                f"${old_price:.8f} → ${new_price:.8f}"
+                f"Płynność: {liquidity_change:+.2f}%"
             )
 
-    old_volume = old_data["volume24h"]
-    new_volume = new_data["volume24h"]
-
-    if old_volume > 0:
-
-        volume_change = ((new_volume - old_volume) / old_volume) * 100
-
-        if volume_change >= VOLUME_ALERT:
-
-            alerts.append(
-                f"📊 {symbol}\n"
-                f"Wolumen wzrósł o {volume_change:.2f}%"
-            )
-
-    if len(alerts) == 0:
+    if not alerts:
         return None
 
     return "\n\n".join(alerts)
