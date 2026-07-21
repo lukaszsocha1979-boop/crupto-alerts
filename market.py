@@ -1,30 +1,31 @@
 import requests
 
-BIRDEYE_API = "https://public-api.birdeye.so/defi/token_overview"
-
-HEADERS = {
-    "accept": "application/json"
-}
+BASE_URL = "https://api.dexscreener.com/latest/dex/tokens/"
 
 
-def get_token_data(address):
+def get_token(address):
     try:
-        r = requests.get(
-            BIRDEYE_API,
-            params={"address": address},
-            headers=HEADERS,
-            timeout=20,
-        )
+        r = requests.get(BASE_URL + address, timeout=20)
 
-        data = r.json()["data"]
+        if r.status_code != 200:
+            return None
+
+        data = r.json()
+
+        if not data.get("pairs"):
+            return None
+
+        pair = data["pairs"][0]
 
         return {
-            "price": data.get("price"),
-            "priceChange1h": data.get("priceChange1hPercent"),
-            "priceChange24h": data.get("priceChange24hPercent"),
-            "volume24h": data.get("v24hUSD"),
-            "marketCap": data.get("mc"),
+            "price": float(pair["priceUsd"]),
+            "volume24h": float(pair["volume"]["h24"]),
+            "liquidity": float(pair["liquidity"]["usd"]),
+            "fdv": pair.get("fdv", 0),
+            "chain": pair["chainId"],
+            "dex": pair["dexId"]
         }
 
-    except Exception:
+    except Exception as e:
+        print(e)
         return None
