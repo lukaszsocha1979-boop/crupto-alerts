@@ -1,33 +1,38 @@
 import requests
 
-BASE_URL = "https://api.dexscreener.com/latest/dex/tokens/"
 
+def get_token(token):
 
-def get_token(address):
     try:
-        response = requests.get(BASE_URL + address, timeout=20)
 
-        if response.status_code != 200:
-            return None
+        # BTC z CoinGecko
+        if token["type"] == "coingecko":
 
-        data = response.json()
+            url = (
+                "https://api.coingecko.com/api/v3/simple/price"
+                f"?ids={token['id']}"
+                "&vs_currencies=usd"
+                "&include_market_cap=true"
+                "&include_24hr_vol=true"
+                "&include_24hr_change=true"
+            )
 
-        if "pairs" not in data:
-            return None
+            r = requests.get(url, timeout=20)
 
-        if len(data["pairs"]) == 0:
-            return None
+            if r.status_code != 200:
+                return None
 
-        pair = data["pairs"][0]
+            data = r.json()[token["id"]]
 
-        return {
-            "price": float(pair.get("priceUsd", 0)),
-            "volume24h": float(pair.get("volume", {}).get("h24", 0)),
-            "liquidity": float(pair.get("liquidity", {}).get("usd", 0)),
-            "fdv": float(pair.get("fdv", 0)),
-            "dex": pair.get("dexId", ""),
-            "chain": pair.get("chainId", "")
-        }
+            return {
+                "price": data["usd"],
+                "market_cap": data["usd_market_cap"],
+                "volume24h": data["usd_24h_vol"],
+                "change24h": data["usd_24h_change"],
+            }
+
+        # Pozostałe tokeny (tymczasowo)
+        return None
 
     except Exception as e:
         print(e)
