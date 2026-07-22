@@ -26,7 +26,7 @@ def save_sent(link):
     data.append(link)
 
     with open(NEWS_FILE, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=2)
 
 
 def load_market():
@@ -48,9 +48,12 @@ def save_market(history):
 
         values["history"].append({
             "time": now,
-            "price": values["price"],
+            "price": values.get("price"),
+            "market_cap": values.get("market_cap"),
             "volume24h": values.get("volume24h"),
             "liquidity": values.get("liquidity"),
+            "buys24h": values.get("buys24h"),
+            "sells24h": values.get("sells24h"),
         })
 
         cutoff = datetime.utcnow() - timedelta(hours=4)
