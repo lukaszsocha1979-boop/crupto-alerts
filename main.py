@@ -22,7 +22,7 @@ def send_telegram(message):
 
     url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
 
-    requests.post(
+    response = requests.post(
         url,
         data={
             "chat_id": os.environ["TELEGRAM_CHAT_ID"],
@@ -31,6 +31,8 @@ def send_telegram(message):
         },
         timeout=20,
     )
+
+    print("Telegram:", response.status_code, response.text)
 
 
 def human(value):
