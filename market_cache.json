@@ -1,25 +1,31 @@
 {
   "BTC": {
-    "price": 65872,
-    "market_cap": 1321373314385.8784,
-    "volume24h": 31629332701.033047,
-    "change24h": 0.031763280787685186,
+    "price": 65883,
+    "market_cap": 1321725110902.571,
+    "volume24h": 31956674604.764267,
+    "change24h": 0.01675489710940653,
     "history": [
       {
         "time": "2026-07-22T06:35:27.511379",
         "price": 65872,
         "volume24h": 31629332701.033047,
         "liquidity": null
+      },
+      {
+        "time": "2026-07-22T07:24:53.737129",
+        "price": 65883,
+        "volume24h": 31956674604.764267,
+        "liquidity": null
       }
     ]
   },
   "ZEUS": {
-    "price": 0.002505,
-    "market_cap": 2333821.0,
-    "volume24h": 92037.9,
-    "change24h": 10.1,
-    "liquidity": 55177.49,
-    "fdv": 2505708.0,
+    "price": 0.002542,
+    "market_cap": 2368424.0,
+    "volume24h": 94785.68,
+    "change24h": 9.73,
+    "liquidity": 56622.51,
+    "fdv": 2542860.0,
     "dex": "orca",
     "chain": "solana",
     "history": [
@@ -28,6 +34,12 @@
         "price": 0.002505,
         "volume24h": 92037.9,
         "liquidity": 55177.49
+      },
+      {
+        "time": "2026-07-22T07:24:53.737129",
+        "price": 0.002542,
+        "volume24h": 94785.68,
+        "liquidity": 56622.51
       }
     ]
   }
