@@ -1,20 +1,82 @@
-name: Crypto Alerts
+"""
+Crypto Alerts
+Config v1.0
 
-on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
+W tym pliku NIE przechowujemy kluczy API.
+Klucze będą pobierane z GitHub Secrets.
 
-jobs:
-  run:
-    runs-on: ubuntu-latest
+Autor: ChatGPT + Łukasz
+"""
 
-    steps:
-      - uses: actions/checkout@v4
+import os
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+# ===========================
+# Telegram
+# ===========================
 
-      - run: pip install -r requirements.txt
-      - run: python main.py
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+# ===========================
+# API
+# ===========================
+
+BIRDEYE_API_KEY = os.getenv("BIRDEYE_API_KEY")
+KUCOIN_API_KEY = os.getenv("KUCOIN_API_KEY")
+
+# ===========================
+# Monitorowane tokeny
+# ===========================
+
+TOKENS = [
+    "ZEUS",
+    "PYTH",
+    "W",
+    "JUP",
+    "BOME",
+    "MEW"
+]
+
+# ===========================
+# BTC
+# ===========================
+
+BTC_SYMBOL = "BTC"
+
+# ===========================
+# Alerty
+# ===========================
+
+PRICE_ALERT_PERCENT = 11
+
+VOLUME_ALERT_PERCENT = 100
+
+CHECK_INTERVAL_MINUTES = 5
+
+# ===========================
+# Storage
+# ===========================
+
+STORAGE_FILE = "storage.json"
+
+# ===========================
+# Telegram
+# ===========================
+
+GREEN = "🟢"
+BLUE = "🔵"
+RED = "🔴"
+
+# ===========================
+# News
+# ===========================
+
+NEWS_TOKENS = [
+    "BTC",
+    "ZEUS",
+    "PYTH",
+    "W",
+    "JUP",
+    "BOME",
+    "MEW"
+]
