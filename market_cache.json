@@ -1,8 +1,8 @@
 {
   "BTC": {
-    "price": 66006.0,
-    "market_cap": 1324105620937.7974,
-    "volume24h": 32403319591.192326,
+    "price": 65972.0,
+    "market_cap": 1323558309035.6296,
+    "volume24h": 32390902538.20857,
     "change24h": 0.01675489710940653,
     "history": [
       {
@@ -34,6 +34,15 @@
         "price": 66006.0,
         "market_cap": 1324105620937.7974,
         "volume24h": 32403319591.192326,
+        "liquidity": null,
+        "buys24h": null,
+        "sells24h": null
+      },
+      {
+        "time": "2026-07-22T11:16:06.846298",
+        "price": 65972.0,
+        "market_cap": 1323558309035.6296,
+        "volume24h": 32390902538.20857,
         "liquidity": null,
         "buys24h": null,
         "sells24h": null
