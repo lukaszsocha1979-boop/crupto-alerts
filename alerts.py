@@ -1,9 +1,27 @@
+import json
+import os
+
 PRICE_ALERT_15M = 10
 PRICE_ALERT_1H = 10
 PRICE_ALERT_4H = 15
 
 VOLUME_ALERT = 100
 LIQUIDITY_ALERT = 15
+
+CACHE_FILE = "alert_cache.json"
+
+
+def load_cache():
+    if not os.path.exists(CACHE_FILE):
+        return {}
+
+    with open(CACHE_FILE, "r") as f:
+        return json.load(f)
+
+
+def save_cache(cache):
+    with open(CACHE_FILE, "w") as f:
+        json.dump(cache, f, indent=2)
 
 
 def percent_change(old, new):
@@ -28,8 +46,13 @@ def check_alert(symbol, data):
         return None
 
     current = history[-1]
+    previous15 = history[-2]
 
-    alerts = []
+    cache = load_cache()
+
+    text = []
+    score = 0
+    key = None
 
     periods = [
         ("15 min", 1, PRICE_ALERT_15M),
@@ -49,32 +72,43 @@ def check_alert(symbol, data):
             current["price"],
         )
 
-        if change is not None and abs(change) >= threshold:
+        if change is None:
+            continue
+
+        if abs(change) >= threshold:
+
+            direction = "UP" if change > 0 else "DOWN"
+            key = f"{symbol}_{label}_{direction}"
+
+            last = cache.get(key)
+
+            rounded = round(change, 1)
+
+            if last == rounded:
+                return None
+
+            cache[key] = rounded
+            save_cache(cache)
+
+            score += 5
 
             icon = "🚀" if change > 0 else "📉"
 
-            alerts.append(
-                f"{icon} {symbol}\n"
-                f"{label}: {change:+.2f}%\n"
-                f"${previous['price']:.8f} → ${current['price']:.8f}"
+            text.append(
+                f"{icon} Cena ({label}): {change:+.2f}%"
             )
 
-    previous = history[-2]
-
     volume_change = percent_change(
-        previous.get("volume24h"),
+        previous15.get("volume24h"),
         current.get("volume24h"),
     )
 
     if volume_change is not None and volume_change >= VOLUME_ALERT:
-
-        alerts.append(
-            f"📊 {symbol}\n"
-            f"Wolumen +{volume_change:.2f}%"
-        )
+        score += 2
+        text.append(f"📊 Wolumen: +{volume_change:.2f}%")
 
     liquidity_change = percent_change(
-        previous.get("liquidity"),
+        previous15.get("liquidity"),
         current.get("liquidity"),
     )
 
@@ -82,13 +116,14 @@ def check_alert(symbol, data):
         liquidity_change is not None
         and abs(liquidity_change) >= LIQUIDITY_ALERT
     ):
+        score += 2
+        text.append(f"💧 Płynność: {liquidity_change:+.2f}%")
 
-        alerts.append(
-            f"💧 {symbol}\n"
-            f"Płynność: {liquidity_change:+.2f}%"
-        )
-
-    if not alerts:
+    if not text:
         return None
 
-    return "\n\n".join(alerts)
+    return (
+        f"🚨 {symbol}\n\n"
+        + "\n".join(text)
+        + f"\n\n⭐ Siła sygnału: {score}/10"
+    )
