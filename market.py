@@ -4,7 +4,7 @@ import requests
 def get_token(token):
     try:
 
-        # CoinGecko
+        # CoinGecko (BTC)
         if token["type"] == "coingecko":
 
             url = (
@@ -13,7 +13,6 @@ def get_token(token):
                 "&vs_currencies=usd"
                 "&include_market_cap=true"
                 "&include_24hr_vol=true"
-                "&include_24hr_change=true"
             )
 
             r = requests.get(url, timeout=20)
@@ -24,13 +23,12 @@ def get_token(token):
             data = r.json()[token["id"]]
 
             return {
-                "price": data["usd"],
-                "market_cap": data["usd_market_cap"],
-                "volume24h": data["usd_24h_vol"],
-                "change24h": data["usd_24hr_change"],
+                "price": float(data["usd"]),
+                "market_cap": float(data["usd_market_cap"]),
+                "volume24h": float(data["usd_24h_vol"]),
             }
 
-        # DexScreener (Solana)
+        # Solana (DexScreener)
         if token["type"] == "solana":
 
             url = (
@@ -50,6 +48,7 @@ def get_token(token):
             if not pairs:
                 return None
 
+            # Para z największą płynnością
             pair = max(
                 pairs,
                 key=lambda p: float(
@@ -58,32 +57,24 @@ def get_token(token):
             )
 
             txns = pair.get("txns", {})
+            h24 = txns.get("h24", {})
 
             return {
                 "price": float(pair.get("priceUsd") or 0),
                 "market_cap": float(pair.get("marketCap") or 0),
                 "fdv": float(pair.get("fdv") or 0),
-
                 "volume24h": float(
                     pair.get("volume", {}).get("h24", 0)
                 ),
-
-                "change24h": float(
-                    pair.get("priceChange", {}).get("h24", 0)
-                ),
-
                 "liquidity": float(
                     pair.get("liquidity", {}).get("usd", 0)
                 ),
-
                 "buys24h": int(
-                    txns.get("h24", {}).get("buys", 0)
+                    h24.get("buys", 0)
                 ),
-
                 "sells24h": int(
-                    txns.get("h24", {}).get("sells", 0)
+                    h24.get("sells", 0)
                 ),
-
                 "pair": pair.get("pairAddress"),
                 "dex": pair.get("dexId"),
                 "chain": pair.get("chainId"),
