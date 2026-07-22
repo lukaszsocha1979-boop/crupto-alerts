@@ -22,7 +22,6 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 # ===========================
 
 BIRDEYE_API_KEY = os.getenv("BIRDEYE_API_KEY")
-KUCOIN_API_KEY = os.getenv("KUCOIN_API_KEY")
 
 # ===========================
 # Monitorowane tokeny
