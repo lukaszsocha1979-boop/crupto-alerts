@@ -52,7 +52,7 @@ def check_alert(symbol, data):
 
     text = []
     score = 0
-    key = None
+    cache_changed = False
 
     periods = [
         ("15 min", 1, PRICE_ALERT_15M),
@@ -75,28 +75,28 @@ def check_alert(symbol, data):
         if change is None:
             continue
 
-        if abs(change) >= threshold:
+        if abs(change) < threshold:
+            continue
 
-            direction = "UP" if change > 0 else "DOWN"
-            key = f"{symbol}_{label}_{direction}"
+        direction = "UP" if change > 0 else "DOWN"
+        key = f"{symbol}_{label}_{direction}"
 
-            last = cache.get(key)
+        rounded = round(change, 1)
+        last = cache.get(key)
 
-            rounded = round(change, 1)
+        if last == rounded:
+            continue
 
-            if last == rounded:
-                return None
+        cache[key] = rounded
+        cache_changed = True
 
-            cache[key] = rounded
-            save_cache(cache)
+        score += 5
 
-            score += 5
+        icon = "🚀" if change > 0 else "📉"
 
-            icon = "🚀" if change > 0 else "📉"
-
-            text.append(
-                f"{icon} Cena ({label}): {change:+.2f}%"
-            )
+        text.append(
+            f"{icon} Cena ({label}): {change:+.2f}%"
+        )
 
     volume_change = percent_change(
         previous15.get("volume24h"),
@@ -105,7 +105,9 @@ def check_alert(symbol, data):
 
     if volume_change is not None and volume_change >= VOLUME_ALERT:
         score += 2
-        text.append(f"📊 Wolumen: +{volume_change:.2f}%")
+        text.append(
+            f"📊 Wolumen: +{volume_change:.2f}%"
+        )
 
     liquidity_change = percent_change(
         previous15.get("liquidity"),
@@ -117,10 +119,18 @@ def check_alert(symbol, data):
         and abs(liquidity_change) >= LIQUIDITY_ALERT
     ):
         score += 2
-        text.append(f"💧 Płynność: {liquidity_change:+.2f}%")
+        text.append(
+            f"💧 Płynność: {liquidity_change:+.2f}%"
+        )
 
     if not text:
         return None
+
+    if cache_changed:
+        save_cache(cache)
+
+    if score > 10:
+        score = 10
 
     return (
         f"🚨 {symbol}\n\n"
