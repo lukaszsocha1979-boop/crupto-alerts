@@ -1,7 +1,7 @@
 import json
 import os
 
-PRICE_ALERT_15M = 10
+PRICE_ALERT_15M = 1
 PRICE_ALERT_1H = 10
 PRICE_ALERT_4H = 15
 
