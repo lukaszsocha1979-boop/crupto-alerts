@@ -1,67 +1,26 @@
-import json
-import os
-from datetime import datetime, timedelta
+RSS_FEEDS = [
 
-NEWS_FILE = "sent_links.json"
-MARKET_FILE = "market_cache.json"
+    # Największe portale
+    "https://www.coindesk.com/arc/outboundfeeds/rss/",
+    "https://cointelegraph.com/rss",
+    "https://decrypt.co/feed",
+    "https://www.theblock.co/rss.xml",
 
+    # Bitcoin
+    "https://bitcoinmagazine.com/.rss/full/",
 
-def already_sent(link):
-    if not os.path.exists(NEWS_FILE):
-        return False
+    # Zeus (gdy pojawi się oficjalny RSS - łatwo go dodamy)
 
-    with open(NEWS_FILE, "r") as f:
-        data = json.load(f)
+    # Jupiter
+    "https://medium.com/feed/@JupiterExchange",
 
-    return link in data
+    # Wormhole
+    "https://wormhole.com/feed/",
 
+    # Pyth
+    "https://www.pyth.network/blog/rss.xml",
 
-def save_sent(link):
-    if os.path.exists(NEWS_FILE):
-        with open(NEWS_FILE, "r") as f:
-            data = json.load(f)
-    else:
-        data = []
+    # Solana
+    "https://solana.com/news/rss.xml",
 
-    data.append(link)
-
-    with open(NEWS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-
-def load_market():
-    if not os.path.exists(MARKET_FILE):
-        return {}
-
-    with open(MARKET_FILE, "r") as f:
-        return json.load(f)
-
-
-def save_market(history):
-
-    now = datetime.utcnow().isoformat()
-
-    for symbol, values in history.items():
-
-        if "history" not in values:
-            values["history"] = []
-
-        values["history"].append({
-            "time": now,
-            "price": values.get("price"),
-            "market_cap": values.get("market_cap"),
-            "volume24h": values.get("volume24h"),
-            "liquidity": values.get("liquidity"),
-            "buys24h": values.get("buys24h"),
-            "sells24h": values.get("sells24h"),
-        })
-
-        cutoff = datetime.utcnow() - timedelta(hours=4)
-
-        values["history"] = [
-            h for h in values["history"]
-            if datetime.fromisoformat(h["time"]) >= cutoff
-        ]
-
-    with open(MARKET_FILE, "w") as f:
-        json.dump(history, f, indent=2)
+]

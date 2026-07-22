@@ -1,181 +1,94 @@
-import os
-import feedparser
-import requests
+PRICE_ALERT_15M = 10
+PRICE_ALERT_1H = 10
+PRICE_ALERT_4H = 15
 
-from news_sources import RSS_FEEDS
-from filters import is_interesting, get_priority
-from translator import translate
-
-from storage import (
-    already_sent,
-    save_sent,
-    load_market,
-    save_market,
-)
-
-from market import get_token
-from tokens import TOKENS
-from alerts import check_alert
+VOLUME_ALERT = 100
+LIQUIDITY_ALERT = 15
 
 
-def send_telegram(message):
+def percent_change(old, new):
+    if old in (None, 0) or new is None:
+        return None
 
-    url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
-
-    response = requests.post(
-        url,
-        data={
-            "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-            "text": message,
-            "disable_web_page_preview": True,
-        },
-        timeout=20,
-    )
-
-    print("Telegram:", response.status_code, response.text)
+    return ((new - old) / old) * 100
 
 
-def human(value):
+def _find_snapshot(history, steps_back):
+    if len(history) <= steps_back:
+        return None
 
-    if value is None:
-        return "-"
-
-    value = float(value)
-
-    if value >= 1_000_000_000_000:
-        return f"{value / 1_000_000_000_000:.2f}T"
-
-    if value >= 1_000_000_000:
-        return f"{value / 1_000_000_000:.2f}B"
-
-    if value >= 1_000_000:
-        return f"{value / 1_000_000:.2f}M"
-
-    if value >= 1_000:
-        return f"{value / 1_000:.2f}K"
-
-    return f"{value:.2f}"
-
-    if value is None:
-        return "-"
-
-    value = float(value)
-
-    if value >= 1_000_000_000_000:
-        return f"{value / 1_000_000_000_000:.2f}T"
-
-    if value >= 1_000_000_000:
-        return f"{value / 1_000_000_000:.2f}B"
-
-    if value >= 1_000_000:
-        return f"{value / 1_000_000:.2f}M"
-
-    if value >= 1_000:
-        return f"{value / 1_000:.2f}K"
-
-    return f"{value:.2f}"
+    return history[-(steps_back + 1)]
 
 
-print("========== START ==========")
+def check_alert(symbol, data):
 
-####################################################
-# RSS
-####################################################
+    history = data.get("history", [])
 
-for feed_url in RSS_FEEDS:
+    if len(history) < 2:
+        return None
 
-    print("RSS:", feed_url)
+    current = history[-1]
 
-    feed = feedparser.parse(feed_url)
+    alerts = []
 
-    for entry in feed.entries:
+    periods = [
+        ("15 min", 1, PRICE_ALERT_15M),
+        ("1 h", 4, PRICE_ALERT_1H),
+        ("4 h", 16, PRICE_ALERT_4H),
+    ]
 
-        title = entry.title
-        link = entry.link
+    for label, steps, threshold in periods:
 
-        if already_sent(link):
+        previous = _find_snapshot(history, steps)
+
+        if previous is None:
             continue
 
-        if not is_interesting(title):
-            continue
-
-        priority, score = get_priority(title)
-
-        if score < 4:
-            continue
-
-        translated = translate(title)
-
-        message = (
-            f"{priority} ({score}/10)\n\n"
-            f"📰 {translated}\n\n"
-            f"🔗 {link}"
+        change = percent_change(
+            previous["price"],
+            current["price"],
         )
 
-        print("NEWS:", translated)
+        if change is not None and abs(change) >= threshold:
 
-        send_telegram(message)
+            icon = "🚀" if change > 0 else "📉"
 
-        save_sent(link)
+            alerts.append(
+                f"{icon} {symbol}\n"
+                f"{label}: {change:+.2f}%\n"
+                f"${previous['price']:.8f} → ${current['price']:.8f}"
+            )
 
-####################################################
-# MARKET
-####################################################
+    previous = history[-2]
 
-market_cache = load_market()
-new_cache = {}
+    volume_change = percent_change(
+        previous.get("volume24h"),
+        current.get("volume24h"),
+    )
 
-market_report = ["📊 RAPORT RYNKU", ""]
+    if volume_change is not None and volume_change >= VOLUME_ALERT:
 
-for symbol, token in TOKENS.items():
+        alerts.append(
+            f"📊 {symbol}\n"
+            f"Wolumen +{volume_change:.2f}%"
+        )
 
-    print("Market:", symbol)
+    liquidity_change = percent_change(
+        previous.get("liquidity"),
+        current.get("liquidity"),
+    )
 
-    data = get_token(token)
+    if (
+        liquidity_change is not None
+        and abs(liquidity_change) >= LIQUIDITY_ALERT
+    ):
 
-    if data is None:
-        print(f"Brak danych dla {symbol}")
-        continue
+        alerts.append(
+            f"💧 {symbol}\n"
+            f"Płynność: {liquidity_change:+.2f}%"
+        )
 
-    history = market_cache.get(symbol, {})
-    history.update(data)
-    new_cache[symbol] = history
+    if not alerts:
+        return None
 
-save_market(new_cache)
-
-market_cache = load_market()
-
-for symbol, data in market_cache.items():
-
-    alert = check_alert(symbol, data)
-
-    if alert:
-        print(alert)
-        send_telegram(alert)
-
-for symbol, data in market_cache.items():
-
-    if symbol == "BTC":
-
-        market_report.extend([
-            "🟠 BTC",
-            f"💰 ${data['price']:,.2f}",
-            f"🏦 MC: {human(data['market_cap'])}",
-            f"📊 Vol: {human(data['volume24h'])}",
-            ""
-        ])
-
-    else:
-
-        market_report.extend([
-            f"⚡ {symbol}",
-            f"💰 ${data['price']:.8f}",
-            f"🏦 MC: {human(data['market_cap'])}",
-            f"📊 Vol: {human(data['volume24h'])}",
-            f"💧 Liq: {human(data.get('liquidity'))}",
-            ""
-        ])
-
-send_telegram("\n".join(market_report))
-
-print("========== KONIEC ==========")
+    return "\n\n".join(alerts)

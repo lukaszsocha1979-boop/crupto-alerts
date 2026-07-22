@@ -1,61 +1,45 @@
-PRICE_ALERT = 10       # %
-VOLUME_ALERT = 100     # %
-LIQUIDITY_ALERT = 15   # %
+name: Crypto Alerts
 
+on:
+  workflow_dispatch:
 
-def percent_change(old, new):
-    if old is None or new is None or old == 0:
-        return None
-    return ((new - old) / old) * 100
+  schedule:
+    - cron: "*/15 * * * *"
 
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
 
-def check_alert(symbol, old_data, new_data):
+    permissions:
+      contents: write
 
-    if old_data is None or new_data is None:
-        return None
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
 
-    alerts = []
+      - name: Zainstaluj Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    # CENA
-    change = percent_change(
-        old_data.get("price"),
-        new_data.get("price"),
-    )
+      - name: Zainstaluj biblioteki
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    if change is not None and abs(change) >= PRICE_ALERT:
-        alerts.append(
-            f"{'🚀' if change > 0 else '📉'} {symbol}\n"
-            f"Cena: {change:+.2f}%\n"
-            f"${old_data['price']:.8f} → ${new_data['price']:.8f}"
-        )
+      - name: Uruchom monitor
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
 
-    # WOLUMEN
-    volume_change = percent_change(
-        old_data.get("volume24h"),
-        new_data.get("volume24h"),
-    )
+      - name: Zapisz historię
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
-    if volume_change is not None and volume_change >= VOLUME_ALERT:
-        alerts.append(
-            f"📊 {symbol}\n"
-            f"Wolumen: +{volume_change:.2f}%"
-        )
+          git add market_cache.json sent_links.json alert_cache.json
 
-    # PŁYNNOŚĆ
-    if "liquidity" in old_data and "liquidity" in new_data:
+          git diff --cached --quiet || git commit -m "Aktualizuj pamięć podręczną"
 
-        liquidity_change = percent_change(
-            old_data.get("liquidity"),
-            new_data.get("liquidity"),
-        )
-
-        if liquidity_change is not None and abs(liquidity_change) >= LIQUIDITY_ALERT:
-            alerts.append(
-                f"💧 {symbol}\n"
-                f"Płynność: {liquidity_change:+.2f}%"
-            )
-
-    if not alerts:
-        return None
-
-    return "\n\n".join(alerts)
+          git push
