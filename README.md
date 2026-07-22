@@ -1,9 +1,5 @@
-# Crypto Alerts
+def main():
+    print("Crypto Alerts - project skeleton")
 
-Projekt startowy.
-
-Docelowo:
-- Birdeye + KuCoin
-- Telegram
-- Alerty 15m / 1h
-- GitHub Actions
+if __name__ == "__main__":
+    main()

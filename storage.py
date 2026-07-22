@@ -1,1 +1,2 @@
-# Storage module placeholder
+requests
+python-telegram-bot

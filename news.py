@@ -1,1 +1,4 @@
-# News module placeholder
+TELEGRAM_TOKEN = ""
+CHAT_ID = ""
+BIRDEYE_API_KEY = ""
+KUCOIN_API_KEY = ""
