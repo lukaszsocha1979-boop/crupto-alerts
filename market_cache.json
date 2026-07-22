@@ -1,16 +1,10 @@
 {
   "BTC": {
-    "price": 65982.0,
-    "market_cap": 1323916433144.6074,
-    "volume24h": 31825563179.35351,
+    "price": 66006.0,
+    "market_cap": 1324105620937.7974,
+    "volume24h": 32403319591.192326,
     "change24h": 0.01675489710940653,
     "history": [
-      {
-        "time": "2026-07-22T06:35:27.511379",
-        "price": 65872,
-        "volume24h": 31629332701.033047,
-        "liquidity": null
-      },
       {
         "time": "2026-07-22T07:24:53.737129",
         "price": 65883,
@@ -34,53 +28,16 @@
         "liquidity": null,
         "buys24h": null,
         "sells24h": null
+      },
+      {
+        "time": "2026-07-22T11:08:56.373726",
+        "price": 66006.0,
+        "market_cap": 1324105620937.7974,
+        "volume24h": 32403319591.192326,
+        "liquidity": null,
+        "buys24h": null,
+        "sells24h": null
       }
     ]
-  },
-  "ZEUS": {
-    "price": 0.002442,
-    "market_cap": 2275336.0,
-    "volume24h": 96620.67,
-    "change24h": 9.73,
-    "liquidity": 56658.46,
-    "fdv": 2442916.0,
-    "dex": "orca",
-    "chain": "solana",
-    "history": [
-      {
-        "time": "2026-07-22T06:35:27.511379",
-        "price": 0.002505,
-        "volume24h": 92037.9,
-        "liquidity": 55177.49
-      },
-      {
-        "time": "2026-07-22T07:24:53.737129",
-        "price": 0.002542,
-        "volume24h": 94785.68,
-        "liquidity": 56622.51
-      },
-      {
-        "time": "2026-07-22T08:34:19.917935",
-        "price": 0.002489,
-        "market_cap": 2319084.0,
-        "volume24h": 94940.54,
-        "liquidity": 55992.21,
-        "buys24h": 658,
-        "sells24h": 549
-      },
-      {
-        "time": "2026-07-22T09:14:55.252025",
-        "price": 0.002442,
-        "market_cap": 2275336.0,
-        "volume24h": 96620.67,
-        "liquidity": 56658.46,
-        "buys24h": 647,
-        "sells24h": 558
-      }
-    ],
-    "buys24h": 647,
-    "sells24h": 558,
-    "pair": "Dsxt7wUigQU5puH9nHjmfwnUenMycAgsFtrkfggLh8P1",
-    "url": "https://dexscreener.com/solana/dsxt7wuigqu5puh9nhjmfwnuenmycagsftrkfgglh8p1"
   }
 }
