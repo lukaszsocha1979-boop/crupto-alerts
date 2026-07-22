@@ -139,17 +139,22 @@ for symbol, token in TOKENS.items():
             ""
         ])
 
-    old = market_cache.get(symbol)
+    history = market_cache.get(symbol, {})
+    history.update(data)
 
-    alert = check_alert(symbol, old, data)
+    new_cache[symbol] = history
+
+save_market(new_cache)
+
+market_cache = load_market()
+
+for symbol, data in market_cache.items():
+
+    alert = check_alert(symbol, data)
 
     if alert:
         print(alert)
         send_telegram(alert)
-
-    new_cache[symbol] = data
-
-save_market(new_cache)
 
 send_telegram("\n".join(market_report))
 
