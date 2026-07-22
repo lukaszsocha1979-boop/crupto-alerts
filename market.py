@@ -1,10 +1,16 @@
+import os
 import requests
+
+
+BIRDEYE_URL = "https://public-api.birdeye.so/defi/token_overview"
 
 
 def get_token(token):
     try:
 
+        # -----------------------------
         # CoinGecko (BTC)
+        # -----------------------------
         if token["type"] == "coingecko":
 
             url = (
@@ -18,6 +24,7 @@ def get_token(token):
             r = requests.get(url, timeout=20)
 
             if r.status_code != 200:
+                print("CoinGecko:", r.text)
                 return None
 
             data = r.json()[token["id"]]
@@ -28,57 +35,54 @@ def get_token(token):
                 "volume24h": float(data["usd_24h_vol"]),
             }
 
-        # Solana (DexScreener)
+        # -----------------------------
+        # Solana (BirdEye)
+        # -----------------------------
         if token["type"] == "solana":
 
-            url = (
-                "https://api.dexscreener.com/latest/dex/tokens/"
-                f"{token['mint']}"
-            )
+            api_key = os.getenv("BIRDEYE_API_KEY")
 
-            r = requests.get(url, timeout=20)
+            if not api_key:
+                print("Brak BIRDEYE_API_KEY")
+                return None
+
+            headers = {
+                "accept": "application/json",
+                "x-api-key": api_key,
+                "x-chain": "solana",
+            }
+
+            r = requests.get(
+                BIRDEYE_URL,
+                params={
+                    "address": token["mint"]
+                },
+                headers=headers,
+                timeout=20,
+            )
 
             if r.status_code != 200:
+                print("BirdEye:", r.status_code, r.text)
                 return None
 
-            data = r.json()
+            body = r.json()
 
-            pairs = data.get("pairs")
-
-            if not pairs:
+            if not body.get("success"):
+                print(body)
                 return None
 
-            # Para z największą płynnością
-            pair = max(
-                pairs,
-                key=lambda p: float(
-                    p.get("liquidity", {}).get("usd", 0)
-                ),
-            )
-
-            txns = pair.get("txns", {})
-            h24 = txns.get("h24", {})
+            data = body["data"]
 
             return {
-                "price": float(pair.get("priceUsd") or 0),
-                "market_cap": float(pair.get("marketCap") or 0),
-                "fdv": float(pair.get("fdv") or 0),
-                "volume24h": float(
-                    pair.get("volume", {}).get("h24", 0)
-                ),
-                "liquidity": float(
-                    pair.get("liquidity", {}).get("usd", 0)
-                ),
-                "buys24h": int(
-                    h24.get("buys", 0)
-                ),
-                "sells24h": int(
-                    h24.get("sells", 0)
-                ),
-                "pair": pair.get("pairAddress"),
-                "dex": pair.get("dexId"),
-                "chain": pair.get("chainId"),
-                "url": pair.get("url"),
+                "price": float(data.get("price") or 0),
+                "market_cap": float(data.get("marketCap") or 0),
+                "fdv": float(data.get("fdv") or 0),
+                "volume24h": float(data.get("v24hUSD") or 0),
+                "liquidity": float(data.get("liquidity") or 0),
+                "buys24h": int(data.get("buy24h") or 0),
+                "sells24h": int(data.get("sell24h") or 0),
+                "holders": int(data.get("holder") or 0),
+                "price_change_24h": float(data.get("priceChange24hPercent") or 0),
             }
 
         return None
