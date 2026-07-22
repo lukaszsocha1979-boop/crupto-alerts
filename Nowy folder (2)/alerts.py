@@ -23,69 +23,17 @@ def percent_change(old, new):
     return ((new - old) / old) * 100
 
 
-from datetime import datetime, timedelta
-
 def snapshot_minutes(history, minutes):
-
     if not history:
         return None
-
     current = datetime.fromisoformat(history[-1]["time"])
     target = current - timedelta(minutes=minutes)
-
     candidate = None
-
     for item in history:
         t = datetime.fromisoformat(item["time"])
         if t <= target:
             candidate = item
-
-    return candidate
-
-
-def score_signal(price4h, volume, liquidity, buys, sells):
-
-    score = 0
-
-    if price4h is not None:
-        if abs(price4h) >= 30:
-            score += 4
-        elif abs(price4h) >= 20:
-            score += 3
-        elif abs(price4h) >= 10:
-            score += 2
-        elif abs(price4h) >= 3:
-            score += 1
-
-    if volume is not None:
-        if volume >= 300:
-            score += 3
-        elif volume >= 150:
-            score += 2
-        elif volume >= 50:
-            score += 1
-
-    if liquidity is not None:
-        if liquidity >= 30:
-            score += 2
-        elif liquidity >= 15:
-            score += 1
-
-    if buys is not None and sells is not None:
-
-        total = buys + sells
-
-        if total > 0:
-
-            ratio = (buys - sells) / total * 100
-
-            if ratio >= 20:
-                score += 2
-            elif ratio >= 5:
-                score += 1
-
-    return min(score, 10)
-
+    return candidate if candidate else history[0]
 
 def check_alert(symbol, data):
 
