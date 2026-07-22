@@ -1,8 +1,8 @@
 {
   "BTC": {
-    "price": 65995.0,
-    "market_cap": 1323979176741.124,
-    "volume24h": 31164756356.671547,
+    "price": 65982.0,
+    "market_cap": 1323916433144.6074,
+    "volume24h": 31825563179.35351,
     "change24h": 0.01675489710940653,
     "history": [
       {
@@ -25,16 +25,25 @@
         "liquidity": null,
         "buys24h": null,
         "sells24h": null
+      },
+      {
+        "time": "2026-07-22T09:14:55.252025",
+        "price": 65982.0,
+        "market_cap": 1323916433144.6074,
+        "volume24h": 31825563179.35351,
+        "liquidity": null,
+        "buys24h": null,
+        "sells24h": null
       }
     ]
   },
   "ZEUS": {
-    "price": 0.002489,
-    "market_cap": 2319084.0,
-    "volume24h": 94940.54,
+    "price": 0.002442,
+    "market_cap": 2275336.0,
+    "volume24h": 96620.67,
     "change24h": 9.73,
-    "liquidity": 55992.21,
-    "fdv": 2489886.0,
+    "liquidity": 56658.46,
+    "fdv": 2442916.0,
     "dex": "orca",
     "chain": "solana",
     "history": [
@@ -58,10 +67,19 @@
         "liquidity": 55992.21,
         "buys24h": 658,
         "sells24h": 549
+      },
+      {
+        "time": "2026-07-22T09:14:55.252025",
+        "price": 0.002442,
+        "market_cap": 2275336.0,
+        "volume24h": 96620.67,
+        "liquidity": 56658.46,
+        "buys24h": 647,
+        "sells24h": 558
       }
     ],
-    "buys24h": 658,
-    "sells24h": 549,
+    "buys24h": 647,
+    "sells24h": 558,
     "pair": "Dsxt7wUigQU5puH9nHjmfwnUenMycAgsFtrkfggLh8P1",
     "url": "https://dexscreener.com/solana/dsxt7wuigqu5puh9nhjmfwnuenmycagsftrkfgglh8p1"
   }
