@@ -1,26 +1,34 @@
-RSS_FEEDS = [
+import requests
 
-    # Największe portale
-    "https://www.coindesk.com/arc/outboundfeeds/rss/",
-    "https://cointelegraph.com/rss",
-    "https://decrypt.co/feed",
-    "https://www.theblock.co/rss.xml",
+BASE_URL = "https://api.dexscreener.com/latest/dex/tokens/"
 
-    # Bitcoin
-    "https://bitcoinmagazine.com/.rss/full/",
 
-    # Zeus (gdy pojawi się oficjalny RSS - łatwo go dodamy)
+def get_token(address):
+    try:
+        response = requests.get(BASE_URL + address, timeout=20)
 
-    # Jupiter
-    "https://medium.com/feed/@JupiterExchange",
+        if response.status_code != 200:
+            return None
 
-    # Wormhole
-    "https://wormhole.com/feed/",
+        data = response.json()
 
-    # Pyth
-    "https://www.pyth.network/blog/rss.xml",
+        if "pairs" not in data:
+            return None
 
-    # Solana
-    "https://solana.com/news/rss.xml",
+        if len(data["pairs"]) == 0:
+            return None
 
-]
+        pair = data["pairs"][0]
+
+        return {
+            "price": float(pair.get("priceUsd", 0)),
+            "volume24h": float(pair.get("volume", {}).get("h24", 0)),
+            "liquidity": float(pair.get("liquidity", {}).get("usd", 0)),
+            "fdv": float(pair.get("fdv", 0)),
+            "dex": pair.get("dexId", ""),
+            "chain": pair.get("chainId", "")
+        }
+
+    except Exception as e:
+        print(e)
+        return None

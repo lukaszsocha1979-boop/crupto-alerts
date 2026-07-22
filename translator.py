@@ -1,1 +1,5 @@
-["https://www.theblock.co/post/409155/satsuma-shareholders-approve-bitcoin-treasury-liquidation-london-delisting?utm_source=rss&utm_medium=rss", "https://www.theblock.co/post/409129/galaxy-bitcoin-quantum-computing-threat-initiative?utm_source=rss&utm_medium=rss"]
+requests
+feedparser
+beautifulsoup4
+lxml
+python-dateutil

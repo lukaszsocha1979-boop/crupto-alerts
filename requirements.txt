@@ -1,74 +1,107 @@
+import os
+import feedparser
 import requests
 
+from news_sources import RSS_FEEDS
+from filters import is_interesting, get_priority
+from translator import translate
 
-def get_token(token):
-    try:
+from storage import (
+    already_sent,
+    save_sent,
+    load_market,
+    save_market,
+)
 
-        # CoinGecko (BTC itd.)
-        if token["type"] == "coingecko":
+from market import get_token
+from tokens import TOKENS
+from alerts import check_alert
 
-            url = (
-                "https://api.coingecko.com/api/v3/simple/price"
-                f"?ids={token['id']}"
-                "&vs_currencies=usd"
-                "&include_market_cap=true"
-                "&include_24hr_vol=true"
-                "&include_24hr_change=true"
-            )
 
-            r = requests.get(url, timeout=20)
+def send_telegram(message):
 
-            if r.status_code != 200:
-                return None
+    url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage"
 
-            data = r.json()[token["id"]]
+    requests.post(
+        url,
+        data={
+            "chat_id": os.environ["TELEGRAM_CHAT_ID"],
+            "text": message,
+            "disable_web_page_preview": False,
+        },
+        timeout=20,
+    )
 
-            return {
-                "price": data["usd"],
-                "market_cap": data["usd_market_cap"],
-                "volume24h": data["usd_24h_vol"],
-                "change24h": data["usd_24h_change"],
-            }
 
-        # Solana (DexScreener)
-        if token["type"] == "solana":
+print("========== START ==========")
 
-            url = (
-                "https://api.dexscreener.com/latest/dex/tokens/"
-                f"{token['mint']}"
-            )
+####################################################
+# RSS
+####################################################
 
-            r = requests.get(url, timeout=20)
+for feed_url in RSS_FEEDS:
 
-            if r.status_code != 200:
-                return None
+    print("RSS:", feed_url)
 
-            data = r.json()
+    feed = feedparser.parse(feed_url)
 
-            if "pairs" not in data or not data["pairs"]:
-                return None
+    for entry in feed.entries:
 
-            # wybierz parę z największą płynnością
-            pair = max(
-                data["pairs"],
-                key=lambda x: float(
-                    x.get("liquidity", {}).get("usd", 0)
-                ),
-            )
+        title = entry.title
+        link = entry.link
 
-            return {
-                "price": float(pair["priceUsd"]),
-                "market_cap": float(pair.get("marketCap") or 0),
-                "volume24h": float(pair.get("volume", {}).get("h24", 0)),
-                "change24h": float(pair.get("priceChange", {}).get("h24", 0)),
-                "liquidity": float(pair.get("liquidity", {}).get("usd", 0)),
-                "fdv": float(pair.get("fdv") or 0),
-                "dex": pair.get("dexId"),
-                "chain": pair.get("chainId"),
-            }
+        if already_sent(link):
+            continue
 
-        return None
+        if not is_interesting(title):
+            continue
 
-    except Exception as e:
-        print("MARKET ERROR:", e)
-        return None
+        priority, score = get_priority(title)
+
+        if score < 4:
+            continue
+
+        translated = translate(title)
+
+        message = (
+            f"{priority} ({score}/10)\n\n"
+            f"📰 {translated}\n\n"
+            f"🔗 {link}"
+        )
+
+        print("NEWS:", translated)
+
+        send_telegram(message)
+
+        save_sent(link)
+
+####################################################
+# MARKET
+####################################################
+
+market_cache = load_market()
+
+new_cache = {}
+
+for symbol, address in TOKENS.items():
+
+    print("Market:", symbol)
+
+    data = get_token(address)
+
+    if data is None:
+        continue
+
+    old = market_cache.get(symbol)
+
+    alert = check_alert(symbol, old, data)
+
+    if alert:
+        print(alert)
+        send_telegram(alert)
+
+    new_cache[symbol] = data
+
+save_market(new_cache)
+
+print("========== KONIEC ==========")

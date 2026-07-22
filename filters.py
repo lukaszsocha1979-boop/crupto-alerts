@@ -1,1 +1,1 @@
-{}
+# crupto-alerts
