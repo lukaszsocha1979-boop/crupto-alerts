@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Storage v1.0
+Storage v1.1
 """
 
 import json
@@ -11,7 +11,7 @@ from config import STORAGE_FILE
 
 def load_storage():
     """
-    Wczytuje storage.json.
+    Wczytuje dane z storage.json.
     """
 
     if not os.path.exists(STORAGE_FILE):
@@ -21,7 +21,8 @@ def load_storage():
         with open(STORAGE_FILE, "r", encoding="utf-8") as file:
             return json.load(file)
 
-    except Exception:
+    except Exception as e:
+        print(f"[STORAGE] Błąd odczytu: {e}")
         return {}
 
 
@@ -30,18 +31,22 @@ def save_storage(data):
     Zapisuje dane do storage.json.
     """
 
-    with open(STORAGE_FILE, "w", encoding="utf-8") as file:
-        json.dump(
-            data,
-            file,
-            indent=4,
-            ensure_ascii=False
-        )
+    try:
+        with open(STORAGE_FILE, "w", encoding="utf-8") as file:
+            json.dump(
+                data,
+                file,
+                indent=4,
+                ensure_ascii=False
+            )
+
+    except Exception as e:
+        print(f"[STORAGE] Błąd zapisu: {e}")
 
 
 def get_token(symbol):
     """
-    Pobiera dane tokena.
+    Zwraca dane zapisane dla tokena.
     """
 
     data = load_storage()
@@ -61,9 +66,21 @@ def update_token(symbol, values):
     save_storage(data)
 
 
+def remove_token(symbol):
+    """
+    Usuwa token ze storage.
+    """
+
+    data = load_storage()
+
+    if symbol in data:
+        del data[symbol]
+        save_storage(data)
+
+
 def clear_storage():
     """
-    Czyści storage.
+    Czyści cały storage.
     """
 
     save_storage({})
