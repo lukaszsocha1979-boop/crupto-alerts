@@ -27,15 +27,56 @@ def save_cache(cache):
 def percent_change(old, new):
     if old in (None, 0) or new is None:
         return None
-
     return ((new - old) / old) * 100
 
 
-def _find_snapshot(history, steps_back):
-    if len(history) <= steps_back:
+def snapshot(history, back):
+    if len(history) <= back:
         return None
+    return history[-(back + 1)]
 
-    return history[-(steps_back + 1)]
+
+def score_signal(price, volume, liquidity, buys, sells):
+
+    score = 0
+
+    if abs(price) >= 20:
+        score += 4
+    elif abs(price) >= 10:
+        score += 3
+    elif abs(price) >= 5:
+        score += 2
+    elif abs(price) >= 1:
+        score += 1
+
+    if volume is not None:
+        if volume >= 300:
+            score += 3
+        elif volume >= 150:
+            score += 2
+        elif volume >= 100:
+            score += 1
+
+    if liquidity is not None:
+        if liquidity >= 30:
+            score += 2
+        elif liquidity >= 15:
+            score += 1
+
+    if buys is not None and sells is not None:
+
+        total = buys + sells
+
+        if total > 0:
+
+            ratio = (buys - sells) / total * 100
+
+            if ratio > 20:
+                score += 2
+            elif ratio > 5:
+                score += 1
+
+    return min(score, 10)
 
 
 def check_alert(symbol, data):
@@ -46,94 +87,71 @@ def check_alert(symbol, data):
         return None
 
     current = history[-1]
-    previous15 = history[-2]
+    previous = snapshot(history, 1)
 
-    cache = load_cache()
+    price = percent_change(
+        previous["price"],
+        current["price"],
+    )
 
-    text = []
-    score = 0
-    cache_changed = False
+    if price is None:
+        return None
 
-    periods = [
-        ("15 min", 1, PRICE_ALERT_15M),
-        ("1 h", 4, PRICE_ALERT_1H),
-        ("4 h", 16, PRICE_ALERT_4H),
-    ]
+    if abs(price) < PRICE_ALERT_15M:
+        return None
 
-    for label, steps, threshold in periods:
-
-        previous = _find_snapshot(history, steps)
-
-        if previous is None:
-            continue
-
-        change = percent_change(
-            previous["price"],
-            current["price"],
-        )
-
-        if change is None:
-            continue
-
-        if abs(change) < threshold:
-            continue
-
-        direction = "UP" if change > 0 else "DOWN"
-        key = f"{symbol}_{label}_{direction}"
-
-        rounded = round(change, 1)
-        last = cache.get(key)
-
-        if last == rounded:
-            continue
-
-        cache[key] = rounded
-        cache_changed = True
-
-        score += 5
-
-        icon = "🚀" if change > 0 else "📉"
-
-        text.append(
-            f"{icon} Cena ({label}): {change:+.2f}%"
-        )
-
-    volume_change = percent_change(
-        previous15.get("volume24h"),
+    volume = percent_change(
+        previous.get("volume24h"),
         current.get("volume24h"),
     )
 
-    if volume_change is not None and volume_change >= VOLUME_ALERT:
-        score += 2
-        text.append(
-            f"📊 Wolumen: +{volume_change:.2f}%"
-        )
-
-    liquidity_change = percent_change(
-        previous15.get("liquidity"),
+    liquidity = percent_change(
+        previous.get("liquidity"),
         current.get("liquidity"),
     )
 
-    if (
-        liquidity_change is not None
-        and abs(liquidity_change) >= LIQUIDITY_ALERT
-    ):
-        score += 2
-        text.append(
-            f"💧 Płynność: {liquidity_change:+.2f}%"
-        )
+    buys = current.get("buys24h")
+    sells = current.get("sells24h")
 
-    if not text:
+    score = score_signal(
+        price,
+        volume,
+        liquidity,
+        buys,
+        sells,
+    )
+
+    direction = "UP" if price > 0 else "DOWN"
+
+    cache = load_cache()
+
+    key = f"{symbol}_{direction}"
+
+    rounded = round(price, 1)
+
+    if cache.get(key) == rounded:
         return None
 
-    if cache_changed:
-        save_cache(cache)
+    cache[key] = rounded
+    save_cache(cache)
 
-    if score > 10:
-        score = 10
+    lines = [
+        f"🚨 {symbol}",
+        "",
+        f"{'🚀' if price > 0 else '📉'} Cena: {price:+.2f}%"
+    ]
 
-    return (
-        f"🚨 {symbol}\n\n"
-        + "\n".join(text)
-        + f"\n\n⭐ Siła sygnału: {score}/10"
-    )
+    if volume is not None:
+        lines.append(f"📊 Wolumen: {volume:+.2f}%")
+
+    if liquidity is not None:
+        lines.append(f"💧 Płynność: {liquidity:+.2f}%")
+
+    if buys is not None and sells is not None:
+        lines.append(f"🟢 Buy: {buys}")
+        lines.append(f"🔴 Sell: {sells}")
+
+    lines.append("")
+    lines.append(f"⭐ Siła sygnału: {score}/10")
+
+    return "\n".join(lines)
