@@ -1,31 +1,20 @@
 name: Crypto Alerts
 
 on:
-  workflow_dispatch:
-
   schedule:
     - cron: "*/5 * * * *"
+  workflow_dispatch:
 
 jobs:
-  monitor:
+  run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pobierz repozytorium
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Zainstaluj Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
-      - name: Zainstaluj biblioteki
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Uruchom monitor
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python main.py
+      - run: pip install -r requirements.txt
+      - run: python main.py
