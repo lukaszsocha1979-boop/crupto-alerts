@@ -4,7 +4,7 @@ import requests
 def get_token(token):
     try:
 
-        # CoinGecko (BTC itd.)
+        # CoinGecko
         if token["type"] == "coingecko":
 
             url = (
@@ -27,10 +27,10 @@ def get_token(token):
                 "price": data["usd"],
                 "market_cap": data["usd_market_cap"],
                 "volume24h": data["usd_24h_vol"],
-                "change24h": data["usd_24h_change"],
+                "change24h": data["usd_24hr_change"],
             }
 
-        # Solana (DexScreener)
+        # DexScreener (Solana)
         if token["type"] == "solana":
 
             url = (
@@ -45,26 +45,49 @@ def get_token(token):
 
             data = r.json()
 
-            if "pairs" not in data or not data["pairs"]:
+            pairs = data.get("pairs")
+
+            if not pairs:
                 return None
 
-            # wybierz parę z największą płynnością
             pair = max(
-                data["pairs"],
-                key=lambda x: float(
-                    x.get("liquidity", {}).get("usd", 0)
+                pairs,
+                key=lambda p: float(
+                    p.get("liquidity", {}).get("usd", 0)
                 ),
             )
 
+            txns = pair.get("txns", {})
+
             return {
-                "price": float(pair["priceUsd"]),
+                "price": float(pair.get("priceUsd") or 0),
                 "market_cap": float(pair.get("marketCap") or 0),
-                "volume24h": float(pair.get("volume", {}).get("h24", 0)),
-                "change24h": float(pair.get("priceChange", {}).get("h24", 0)),
-                "liquidity": float(pair.get("liquidity", {}).get("usd", 0)),
                 "fdv": float(pair.get("fdv") or 0),
+
+                "volume24h": float(
+                    pair.get("volume", {}).get("h24", 0)
+                ),
+
+                "change24h": float(
+                    pair.get("priceChange", {}).get("h24", 0)
+                ),
+
+                "liquidity": float(
+                    pair.get("liquidity", {}).get("usd", 0)
+                ),
+
+                "buys24h": int(
+                    txns.get("h24", {}).get("buys", 0)
+                ),
+
+                "sells24h": int(
+                    txns.get("h24", {}).get("sells", 0)
+                ),
+
+                "pair": pair.get("pairAddress"),
                 "dex": pair.get("dexId"),
                 "chain": pair.get("chainId"),
+                "url": pair.get("url"),
             }
 
         return None
