@@ -44,7 +44,7 @@ def human(value):
         return f"{value/1_000_000_000_000:.2f}T"
 
     if value >= 1_000_000_000:
-        return f"{value/1_000_000_000:.2f}B"
+        return f"{value/1_000_000:.2f}B"
 
     if value >= 1_000_000:
         return f"{value/1_000_000:.2f}M"
@@ -104,7 +104,7 @@ for feed_url in RSS_FEEDS:
 market_cache = load_market()
 new_cache = {}
 
-market_report = ["📈 RAPORT RYNKU", ""]
+market_report = ["📊 RAPORT RYNKU", ""]
 
 for symbol, token in TOKENS.items():
 
@@ -116,32 +116,8 @@ for symbol, token in TOKENS.items():
         print(f"Brak danych dla {symbol}")
         continue
 
-    if symbol == "BTC":
-
-        market_report.extend([
-            "🟠 BTC",
-            f"💰 ${data['price']:,.2f}",
-            f"📈 24h: {data['change24h']:+.2f}%",
-            f"🏦 MC: {human(data['market_cap'])}",
-            f"📊 Vol: {human(data['volume24h'])}",
-            ""
-        ])
-
-    elif symbol == "ZEUS":
-
-        market_report.extend([
-            "⚡ ZEUS",
-            f"💰 ${data['price']:.8f}",
-            f"📈 24h: {data['change24h']:+.2f}%",
-            f"🏦 MC: {human(data['market_cap'])}",
-            f"📊 Vol: {human(data['volume24h'])}",
-            f"💧 Liq: {human(data.get('liquidity', 0))}",
-            ""
-        ])
-
     history = market_cache.get(symbol, {})
     history.update(data)
-
     new_cache[symbol] = history
 
 save_market(new_cache)
@@ -155,6 +131,29 @@ for symbol, data in market_cache.items():
     if alert:
         print(alert)
         send_telegram(alert)
+
+for symbol, data in market_cache.items():
+
+    if symbol == "BTC":
+
+        market_report.extend([
+            "🟠 BTC",
+            f"💰 ${data['price']:,.2f}",
+            f"🏦 MC: {human(data['market_cap'])}",
+            f"📊 Vol: {human(data['volume24h'])}",
+            ""
+        ])
+
+    else:
+
+        market_report.extend([
+            f"⚡ {symbol}",
+            f"💰 ${data['price']:.8f}",
+            f"🏦 MC: {human(data['market_cap'])}",
+            f"📊 Vol: {human(data['volume24h'])}",
+            f"💧 Liq: {human(data.get('liquidity'))}",
+            ""
+        ])
 
 send_telegram("\n".join(market_report))
 
