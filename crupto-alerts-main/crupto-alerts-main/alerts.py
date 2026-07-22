@@ -23,23 +23,20 @@ def percent_change(old, new):
     return ((new - old) / old) * 100
 
 
-from datetime import datetime, timedelta
-
 def snapshot_minutes(history, minutes):
 
     if not history:
         return None
 
-    current = datetime.fromisoformat(history[-1]["time"])
-    target = current - timedelta(minutes=minutes)
+    from datetime import datetime
+
+    current = datetime.fromisoformat(history[-1]["time"]).timestamp()
+    target = current - minutes * 60
 
     candidate = None
 
     for item in history:
-        try:
-            t = datetime.fromisoformat(item["time"])
-        except Exception:
-            continue
+                t = datetime.fromisoformat(item["time"]).timestamp()
         if t <= target:
             candidate = item
 
