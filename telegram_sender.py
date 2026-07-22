@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Telegram Sender v1.0
+Telegram Sender v1.1
 """
 
 import requests
@@ -24,6 +24,8 @@ def send_message(message: str) -> bool:
         print("❌ Brak TELEGRAM_CHAT_ID")
         return False
 
+    message = str(message)
+
     url = (
         f"https://api.telegram.org/bot"
         f"{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -43,15 +45,17 @@ def send_message(message: str) -> bool:
             timeout=15
         )
 
-        if response.status_code == 200:
-            print("✅ Telegram OK")
-            return True
+        response.raise_for_status()
 
-        print(response.text)
+        print("✅ Telegram OK")
+        return True
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Telegram error: {e}")
         return False
 
     except Exception as e:
-        print(e)
+        print(f"❌ Nieoczekiwany błąd: {e}")
         return False
 
 
@@ -65,7 +69,7 @@ def send_test():
         "Połączenie z Telegram działa poprawnie ✅"
     )
 
-    send_message(message)
+    return send_message(message)
 
 
 if __name__ == "__main__":
