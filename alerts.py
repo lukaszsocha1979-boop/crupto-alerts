@@ -1,13 +1,6 @@
 import json
 import os
 
-PRICE_ALERT_15M = 1
-PRICE_ALERT_1H = 10
-PRICE_ALERT_4H = 15
-
-VOLUME_ALERT = 100
-LIQUIDITY_ALERT = 15
-
 CACHE_FILE = "alert_cache.json"
 
 
@@ -30,31 +23,43 @@ def percent_change(old, new):
     return ((new - old) / old) * 100
 
 
-def snapshot(history, back):
-    if len(history) <= back:
+def snapshot_minutes(history, minutes):
+
+    if not history:
         return None
-    return history[-(back + 1)]
+
+    current = history[-1]["time"]
+    target = current - minutes * 60
+
+    candidate = None
+
+    for item in history:
+        if item["time"] <= target:
+            candidate = item
+
+    return candidate
 
 
-def score_signal(price, volume, liquidity, buys, sells):
+def score_signal(price4h, volume, liquidity, buys, sells):
 
     score = 0
 
-    if abs(price) >= 20:
-        score += 4
-    elif abs(price) >= 10:
-        score += 3
-    elif abs(price) >= 5:
-        score += 2
-    elif abs(price) >= 1:
-        score += 1
+    if price4h is not None:
+        if abs(price4h) >= 30:
+            score += 4
+        elif abs(price4h) >= 20:
+            score += 3
+        elif abs(price4h) >= 10:
+            score += 2
+        elif abs(price4h) >= 3:
+            score += 1
 
     if volume is not None:
         if volume >= 300:
             score += 3
         elif volume >= 150:
             score += 2
-        elif volume >= 100:
+        elif volume >= 50:
             score += 1
 
     if liquidity is not None:
@@ -71,9 +76,9 @@ def score_signal(price, volume, liquidity, buys, sells):
 
             ratio = (buys - sells) / total * 100
 
-            if ratio > 20:
+            if ratio >= 20:
                 score += 2
-            elif ratio > 5:
+            elif ratio >= 5:
                 score += 1
 
     return min(score, 10)
@@ -87,18 +92,25 @@ def check_alert(symbol, data):
         return None
 
     current = history[-1]
-    previous = snapshot(history, 1)
 
-    price = percent_change(
-        previous["price"],
-        current["price"],
-    )
+    p15 = snapshot_minutes(history, 15)
+    p60 = snapshot_minutes(history, 60)
+    p240 = snapshot_minutes(history, 240)
 
-    if price is None:
+    price15 = percent_change(p15["price"], current["price"]) if p15 else None
+    price60 = percent_change(p60["price"], current["price"]) if p60 else None
+    price240 = percent_change(p240["price"], current["price"]) if p240 else None
+
+    trigger = False
+
+    for p in (price15, price60, price240):
+        if p is not None and abs(p) >= 1:
+            trigger = True
+
+    if not trigger:
         return None
 
-    if abs(price) < PRICE_ALERT_15M:
-        return None
+    previous = history[-2]
 
     volume = percent_change(
         previous.get("volume24h"),
@@ -114,20 +126,19 @@ def check_alert(symbol, data):
     sells = current.get("sells24h")
 
     score = score_signal(
-        price,
+        price240,
         volume,
         liquidity,
         buys,
         sells,
     )
 
-    direction = "UP" if price > 0 else "DOWN"
+    direction = "UP" if (price15 or 0) >= 0 else "DOWN"
 
     cache = load_cache()
 
+    rounded = round(price15 or 0, 1)
     key = f"{symbol}_{direction}"
-
-    rounded = round(price, 1)
 
     if cache.get(key) == rounded:
         return None
@@ -138,20 +149,37 @@ def check_alert(symbol, data):
     lines = [
         f"🚨 {symbol}",
         "",
-        f"{'🚀' if price > 0 else '📉'} Cena: {price:+.2f}%"
+        "📈 Cena"
     ]
 
+    if price15 is not None:
+        lines.append(f"15m : {price15:+.2f}%")
+
+    if price60 is not None:
+        lines.append(f"1h  : {price60:+.2f}%")
+
+    if price240 is not None:
+        lines.append(f"4h  : {price240:+.2f}%")
+
     if volume is not None:
-        lines.append(f"📊 Wolumen: {volume:+.2f}%")
+        lines.extend([
+            "",
+            f"📊 Wolumen: {volume:+.2f}%"
+        ])
 
     if liquidity is not None:
         lines.append(f"💧 Płynność: {liquidity:+.2f}%")
 
     if buys is not None and sells is not None:
-        lines.append(f"🟢 Buy: {buys}")
-        lines.append(f"🔴 Sell: {sells}")
+        lines.extend([
+            "",
+            f"🟢 Buy: {buys}",
+            f"🔴 Sell: {sells}",
+        ])
 
-    lines.append("")
-    lines.append(f"⭐ Siła sygnału: {score}/10")
+    lines.extend([
+        "",
+        f"⭐ Siła sygnału: {score}/10"
+    ])
 
     return "\n".join(lines)
