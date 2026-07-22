@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Tokens v1.1
+Tokens v1.2
 
 Wszystkie monitorowane tokeny znajdują się w jednym miejscu.
 """
@@ -10,13 +10,13 @@ TOKENS = {
     "ZEUS": {
         "name": "Zeus Network",
         "chain": "solana",
-        "mint": ""
+        "mint": "ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq"
     },
 
     "PYTH": {
         "name": "Pyth Network",
         "chain": "solana",
-        "mint": ""
+        "mint": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3"
     },
 
     "W": {
@@ -28,7 +28,7 @@ TOKENS = {
     "JUP": {
         "name": "Jupiter",
         "chain": "solana",
-        "mint": ""
+        "mint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
     },
 
     "BOME": {
