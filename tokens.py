@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Tokens v1.2
+Tokens v1.3
 
 Wszystkie monitorowane tokeny znajdują się w jednym miejscu.
 """
@@ -22,7 +22,7 @@ TOKENS = {
     "W": {
         "name": "Wormhole",
         "chain": "solana",
-        "mint": ""
+        "mint": "85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ"
     },
 
     "JUP": {
@@ -34,13 +34,13 @@ TOKENS = {
     "BOME": {
         "name": "BOOK OF MEME",
         "chain": "solana",
-        "mint": ""
+        "mint": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82"
     },
 
     "MEW": {
         "name": "cat in a dogs world",
         "chain": "solana",
-        "mint": ""
+        "mint": "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5"
     }
 
 }
