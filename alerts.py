@@ -126,8 +126,7 @@ def check_alerts(market):
         if start_volume and volume:
 
             volume_change = (
-                (volume - start_volume)
-                / start_volume
+                (volume - start_volume) / start_volume
             ) * 100
 
             if volume_change >= VOLUME_ALERT_PERCENT:
