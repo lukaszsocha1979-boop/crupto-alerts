@@ -1,16 +1,15 @@
 """
 Crypto Alerts
-Market v1.0
+Market v1.1
 """
+
+import time
 
 from tokens import TOKENS
 from birdeye import get_market_data
 
 
 def get_market():
-    """
-    Pobiera dane wszystkich monitorowanych tokenów.
-    """
 
     market = {}
 
@@ -28,6 +27,9 @@ def get_market():
 
             print(f"✅ {symbol} OK")
 
+            # Krótka przerwa, aby nie przekroczyć limitu API Birdeye
+            time.sleep(1)
+
         except Exception as e:
 
             print(f"❌ {symbol}: {e}")
@@ -36,9 +38,6 @@ def get_market():
 
 
 def get_token(symbol: str):
-    """
-    Pobiera dane jednego tokena.
-    """
 
     token = TOKENS.get(symbol)
 
@@ -51,17 +50,3 @@ def get_token(symbol: str):
         return None
 
     return get_market_data(mint)
-
-
-if __name__ == "__main__":
-
-    data = get_market()
-
-    for symbol, info in data.items():
-
-        print(
-            symbol,
-            info["price"],
-            info["price_change_24h"],
-            info["volume_24h"]
-        )
