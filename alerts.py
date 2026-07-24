@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Alerts v1.0
+Alerts v1.1
 """
 
 from config import (
@@ -40,19 +40,18 @@ def _next_level(previous_level, current_change):
     ...
     """
 
-    if abs(current_change) < FIRST_PRICE_ALERT:
+    change = abs(current_change)
+
+    if change < FIRST_PRICE_ALERT:
         return None
 
     if previous_level is None:
         return FIRST_PRICE_ALERT
 
-    level = previous_level
+    next_level = previous_level + NEXT_PRICE_ALERT_STEP
 
-    while abs(current_change) >= level + NEXT_PRICE_ALERT_STEP:
-        level += NEXT_PRICE_ALERT_STEP
-
-    if level != previous_level:
-        return level
+    if change >= next_level:
+        return next_level
 
     return None
 
@@ -81,17 +80,19 @@ def check_alerts(market):
 
         if start_price is None:
 
-            storage[symbol] = {
+            token = {
                 "start_price": price,
                 "start_volume": volume,
                 "last_up_alert": None,
                 "last_down_alert": None
             }
 
+            storage[symbol] = token
             continue
 
         change = _percent_change(start_price, price)
 
+        # Wzrost
         if change >= 0:
 
             level = _next_level(last_up, change)
@@ -104,8 +105,8 @@ def check_alerts(market):
 
                 token["last_up_alert"] = level
                 token["last_down_alert"] = None
-                token["start_price"] = price
 
+        # Spadek
         else:
 
             level = _next_level(last_down, change)
@@ -118,8 +119,8 @@ def check_alerts(market):
 
                 token["last_down_alert"] = level
                 token["last_up_alert"] = None
-                token["start_price"] = price
 
+        # Alert wolumenu
         if start_volume and volume:
 
             volume_change = (
