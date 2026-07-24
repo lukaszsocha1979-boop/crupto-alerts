@@ -1,13 +1,22 @@
-# Alerts module placeholder
-market = get_market()
+"""
+Crypto Alerts
+Main v1.0
+"""
 
-alerts = check_alerts(market)
+from market import get_market
+from alerts import check_alerts
+from telegram_sender import send_message
 
-if alerts:
-    send_message(build_message(alerts))
 
-if should_check_news():
-    news = check_news()
+def main():
 
-    if news:
-        send_message(build_news_message(news))
+    market = get_market()
+
+    alerts = check_alerts(market)
+
+    if alerts:
+        send_message(alerts)
+
+
+if __name__ == "__main__":
+    main()
