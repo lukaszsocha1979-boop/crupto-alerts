@@ -9,6 +9,9 @@ from telegram_sender import send_message
 
 
 def main():
+    """
+    Główna funkcja programu.
+    """
 
     market = get_market()
 
