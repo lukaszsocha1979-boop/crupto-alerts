@@ -1,74 +1,51 @@
-"""
-Crypto Alerts
-Config v1.1
+name: Crypto Alerts
 
-W tym pliku NIE przechowujemy kluczy API.
-Klucze pobierane są z GitHub Secrets.
+on:
+  workflow_dispatch:
 
-Autor: ChatGPT + Łukasz
-"""
+  schedule:
+    - cron: "*/5 * * * *"
 
-import os
+jobs:
+  run:
+    runs-on: ubuntu-latest
 
-# ==================================================
-# Telegram
-# ==================================================
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-# ==================================================
-# API
-# ==================================================
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-BIRDEYE_API_KEY = os.getenv("BIRDEYE_API_KEY")
+      - name: Debug environment
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+        run: |
+          if [ -z "$BIRDEYE_API_KEY" ]; then
+            echo "❌ BIRDEYE_API_KEY = BRAK"
+          else
+            echo "✅ BIRDEYE_API_KEY = OK"
+          fi
 
-# ==================================================
-# Bitcoin
-# ==================================================
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "❌ TELEGRAM_BOT_TOKEN = BRAK"
+          else
+            echo "✅ TELEGRAM_BOT_TOKEN = OK"
+          fi
 
-BTC_SYMBOL = "BTC"
+          if [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "❌ TELEGRAM_CHAT_ID = BRAK"
+          else
+            echo "✅ TELEGRAM_CHAT_ID = OK"
+          fi
 
-# ==================================================
-# Alerty
-# ==================================================
-
-# Pierwszy alert ceny
-FIRST_PRICE_ALERT = 11
-
-# Kolejne alerty (+20%, +30%, +40%...)
-NEXT_PRICE_ALERT_STEP = 10
-
-# Alert wolumenu
-VOLUME_ALERT_PERCENT = 100
-
-# GitHub Actions (co ile minut uruchamia bota)
-CHECK_INTERVAL_MINUTES = 5
-
-# ==================================================
-# Storage
-# ==================================================
-
-STORAGE_FILE = "storage.json"
-
-# ==================================================
-# Telegram Emojis
-# ==================================================
-
-GREEN = "🟢"
-BLUE = "🔵"
-RED = "🔴"
-
-# ==================================================
-# News
-# ==================================================
-
-NEWS_TOKENS = [
-    "BTC",
-    "ZEUS",
-    "PYTH",
-    "W",
-    "JUP",
-    "BOME",
-    "MEW"
-]
+          python main.py
