@@ -1,21 +1,74 @@
 """
 Crypto Alerts
-Main - Debug
+Birdeye API v1.0
 """
 
-import os
+import requests
 
-print("=" * 40)
-print("CRYPTO ALERTS - DEBUG")
-print("=" * 40)
+from config import BIRDEYE_API_KEY
 
-print("BIRDEYE_API_KEY :", "OK" if os.getenv("BIRDEYE_API_KEY") else "BRAK")
-print("TELEGRAM_BOT_TOKEN :", "OK" if os.getenv("TELEGRAM_BOT_TOKEN") else "BRAK")
-print("TELEGRAM_CHAT_ID :", "OK" if os.getenv("TELEGRAM_CHAT_ID") else "BRAK")
+BASE_URL = "https://public-api.birdeye.so"
 
-print("=" * 40)
 
-if os.getenv("BIRDEYE_API_KEY"):
-    print("✅ GitHub przekazuje BIRDEYE_API_KEY")
-else:
-    print("❌ GitHub NIE przekazuje BIRDEYE_API_KEY")
+def _headers():
+    return {
+        "X-API-KEY": BIRDEYE_API_KEY,
+        "x-chain": "solana",
+        "accept": "application/json"
+    }
+
+
+def _request(endpoint: str, params: dict | None = None):
+
+    if not BIRDEYE_API_KEY:
+        raise ValueError("Brak BIRDEYE_API_KEY")
+
+    url = f"{BASE_URL}{endpoint}"
+
+    response = requests.get(
+        url,
+        headers=_headers(),
+        params=params,
+        timeout=20
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if not data.get("success", False):
+        raise RuntimeError(
+            f"Birdeye API error: {data}"
+        )
+
+    return data.get("data", {})
+
+
+def get_token_overview(mint: str):
+    return _request(
+        "/defi/token_overview",
+        {
+            "address": mint
+        }
+    )
+
+
+def get_price(mint: str):
+    overview = get_token_overview(mint)
+    return overview.get("price")
+
+
+def get_market_data(mint: str):
+    overview = get_token_overview(mint)
+
+    return {
+        "price": overview.get("price"),
+        "price_change_24h": overview.get("priceChange24hPercent"),
+        "volume_24h": overview.get("v24hUSD"),
+        "market_cap": overview.get("marketCap"),
+        "liquidity": overview.get("liquidity"),
+    }
+
+
+if __name__ == "__main__":
+    print("Birdeye module OK")
