@@ -44,11 +44,7 @@ def _next_level(previous_level, current_change):
         return None
 
     if previous_level is None:
-
-        if abs(current_change) >= FIRST_PRICE_ALERT:
-            return FIRST_PRICE_ALERT
-
-        return None
+        return FIRST_PRICE_ALERT
 
     level = previous_level
 
@@ -70,7 +66,6 @@ def check_alerts(market):
     for symbol, data in market.items():
 
         price = data.get("price")
-
         volume = data.get("volume_24h")
 
         if price is None:
@@ -79,11 +74,9 @@ def check_alerts(market):
         token = storage.get(symbol, {})
 
         start_price = token.get("start_price")
-
         start_volume = token.get("start_volume")
 
         last_up = token.get("last_up_alert")
-
         last_down = token.get("last_down_alert")
 
         if start_price is None:
@@ -110,6 +103,8 @@ def check_alerts(market):
                 )
 
                 token["last_up_alert"] = level
+                token["last_down_alert"] = None
+                token["start_price"] = price
 
         else:
 
@@ -122,6 +117,8 @@ def check_alerts(market):
                 )
 
                 token["last_down_alert"] = level
+                token["last_up_alert"] = None
+                token["start_price"] = price
 
         if start_volume and volume:
 
@@ -136,10 +133,6 @@ def check_alerts(market):
                 )
 
                 token["start_volume"] = volume
-
-        token["start_price"] = start_price
-        token["last_up_alert"] = token.get("last_up_alert")
-        token["last_down_alert"] = token.get("last_down_alert")
 
         storage[symbol] = token
 
