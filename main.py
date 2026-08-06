@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Main v1.1
+Main v1.2
 """
 
 from market import get_market
@@ -14,29 +14,35 @@ def main():
     Główna funkcja programu.
     """
 
-    print("🚀 Crypto Alerts start...")
+    try:
 
-    market = get_market()
+        print("🚀 Crypto Alerts start...")
 
-    messages = []
+        market = get_market()
 
-    alerts = check_alerts(market)
-    if alerts:
-        messages.append(alerts)
+        messages = []
 
-    news = get_news()
-    if news:
-        if isinstance(news, list):
-            messages.extend(news)
+        alerts = check_alerts(market)
+        if alerts:
+            messages.append(alerts)
+
+        news = get_news()
+        if news:
+            if isinstance(news, list):
+                messages.extend(news)
+            else:
+                messages.append(news)
+
+        if messages:
+            send_message("\n\n".join(messages))
         else:
-            messages.append(news)
+            print("ℹ️ Brak nowych alertów.")
 
-    if messages:
-        send_message("\n\n".join(messages))
-    else:
-        print("ℹ️ Brak nowych alertów.")
+        print("✅ Crypto Alerts zakończył działanie.")
 
-    print("✅ Crypto Alerts zakończył działanie.")
+    except Exception as e:
+        print(f"❌ Błąd: {type(e).__name__}: {e}")
+        raise
 
 
 if __name__ == "__main__":
