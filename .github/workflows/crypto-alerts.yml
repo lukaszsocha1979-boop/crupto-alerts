@@ -6,6 +6,9 @@ on:
   schedule:
     - cron: "*/5 * * * *"
 
+permissions:
+  contents: write
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -31,3 +34,17 @@ jobs:
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: |
           python main.py
+
+      - name: Save storage.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add storage.json
+
+          if git diff --cached --quiet; then
+            echo "ℹ️ Brak zmian w storage.json."
+          else
+            git commit -m "Update crypto alerts storage"
+            git push
+          fi
