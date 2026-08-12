@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Birdeye API v1.0
+Birdeye API v1.1
 """
 
 import requests
@@ -14,7 +14,7 @@ def _headers():
     return {
         "X-API-KEY": BIRDEYE_API_KEY,
         "x-chain": "solana",
-        "accept": "application/json"
+        "accept": "application/json",
     }
 
 
@@ -29,10 +29,14 @@ def _request(endpoint: str, params: dict | None = None):
         url,
         headers=_headers(),
         params=params,
-        timeout=20
+        timeout=20,
     )
 
-    response.raise_for_status()
+    if not response.ok:
+        print(f"❌ Birdeye HTTP {response.status_code}")
+        print(f"❌ Birdeye response: {response.text}")
+
+        response.raise_for_status()
 
     data = response.json()
 
@@ -48,8 +52,8 @@ def get_token_overview(mint: str):
     return _request(
         "/defi/token_overview",
         {
-            "address": mint
-        }
+            "address": mint,
+        },
     )
 
 
@@ -59,6 +63,7 @@ def get_price(mint: str):
 
 
 def get_market_data(mint: str):
+
     overview = get_token_overview(mint)
 
     return {
