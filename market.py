@@ -1,9 +1,7 @@
 """
 Crypto Alerts
-Market v1.1
+Market v1.2
 """
-
-import time
 
 from tokens import TOKENS
 from birdeye import get_market_data
@@ -26,9 +24,6 @@ def get_market():
             market[symbol] = get_market_data(mint)
 
             print(f"✅ {symbol} OK")
-
-            # Krótka przerwa, aby nie przekroczyć limitu API Birdeye
-            time.sleep(1)
 
         except Exception as e:
 
