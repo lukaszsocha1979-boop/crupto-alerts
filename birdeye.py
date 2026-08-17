@@ -1,11 +1,15 @@
 """
 Crypto Alerts
-Birdeye API v1.1
+Birdeye API v1.2
+
+Pobieranie aktualnej ceny tokena.
+Wersja oszczędna dla planu Birdeye Standard.
 """
 
 import requests
 
 from config import BIRDEYE_API_KEY
+
 
 BASE_URL = "https://public-api.birdeye.so"
 
@@ -48,30 +52,40 @@ def _request(endpoint: str, params: dict | None = None):
     return data.get("data", {})
 
 
-def get_token_overview(mint: str):
-    return _request(
-        "/defi/token_overview",
+def get_price(mint: str):
+    """
+    Pobiera aktualną cenę tokena.
+
+    Koszt endpointu /defi/price:
+    3 CU
+    """
+
+    data = _request(
+        "/defi/price",
         {
             "address": mint,
         },
     )
 
-
-def get_price(mint: str):
-    overview = get_token_overview(mint)
-    return overview.get("price")
+    return data.get("value")
 
 
 def get_market_data(mint: str):
+    """
+    Zwraca dane w formacie zgodnym z market.py.
 
-    overview = get_token_overview(mint)
+    W tej oszczędnej wersji pobieramy tylko cenę.
+    Wolumen pozostaje None, aby nie zużywać dodatkowych CU.
+    """
+
+    price = get_price(mint)
 
     return {
-        "price": overview.get("price"),
-        "price_change_24h": overview.get("priceChange24hPercent"),
-        "volume_24h": overview.get("v24hUSD"),
-        "market_cap": overview.get("marketCap"),
-        "liquidity": overview.get("liquidity"),
+        "price": price,
+        "price_change_24h": None,
+        "volume_24h": None,
+        "market_cap": None,
+        "liquidity": None,
     }
 
 
