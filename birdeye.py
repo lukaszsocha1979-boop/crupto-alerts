@@ -1,9 +1,6 @@
 """
 Crypto Alerts
-Birdeye API v1.2
-
-Pobieranie aktualnej ceny tokena.
-Wersja oszczędna dla planu Birdeye Standard.
+Birdeye API v1.3
 """
 
 import requests
@@ -36,6 +33,21 @@ def _request(endpoint: str, params: dict | None = None):
         timeout=20,
     )
 
+    # Diagnostyka odpowiedzi Birdeye
+    print("=== BIRDEYE DEBUG ===")
+    print("URL:", response.url)
+    print("Status:", response.status_code)
+    print(
+        "Remaining-CU:",
+        response.headers.get("x-credits-remaining")
+    )
+    print(
+        "Used-CU:",
+        response.headers.get("x-credits-used")
+    )
+    print("Message:", response.text)
+    print("=====================")
+
     if not response.ok:
         print(f"❌ Birdeye HTTP {response.status_code}")
         print(f"❌ Birdeye response: {response.text}")
@@ -56,7 +68,10 @@ def get_price(mint: str):
     """
     Pobiera aktualną cenę tokena.
 
-    Koszt endpointu /defi/price:
+    Endpoint:
+    /defi/price
+
+    Koszt:
     3 CU
     """
 
@@ -74,8 +89,8 @@ def get_market_data(mint: str):
     """
     Zwraca dane w formacie zgodnym z market.py.
 
-    W tej oszczędnej wersji pobieramy tylko cenę.
-    Wolumen pozostaje None, aby nie zużywać dodatkowych CU.
+    W tej wersji pobieramy tylko aktualną cenę,
+    aby ograniczyć zużycie Compute Units.
     """
 
     price = get_price(mint)
