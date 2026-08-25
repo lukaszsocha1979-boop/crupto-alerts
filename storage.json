@@ -1,1 +1,8 @@
-{}
+{
+    "ZEUS": {
+        "start_price": 0.002655948150505302,
+        "start_volume": null,
+        "last_up_alert": null,
+        "last_down_alert": null
+    }
+}
