@@ -3,6 +3,8 @@ Crypto Alerts
 Market v1.2
 """
 
+import time
+
 from tokens import TOKENS
 from birdeye import get_market_data
 
@@ -25,9 +27,16 @@ def get_market():
 
             print(f"✅ {symbol} OK")
 
+            # Standard Birdeye = 1 request/sec.
+            # 2 sekundy dają bezpieczny zapas.
+            time.sleep(2)
+
         except Exception as e:
 
             print(f"❌ {symbol}: {e}")
+
+            # Po błędzie rate limit też chwilę czekamy
+            time.sleep(2)
 
     return market
 
