@@ -4,5 +4,11 @@
         "start_volume": null,
         "last_up_alert": null,
         "last_down_alert": null
+    },
+    "PYTH": {
+        "start_price": 0.05717959649440031,
+        "start_volume": null,
+        "last_up_alert": null,
+        "last_down_alert": null
     }
 }
