@@ -3,36 +3,156 @@
         "start_price": 0.002655948150505302,
         "start_volume": null,
         "last_up_alert": null,
-        "last_down_alert": null
+        "last_down_alert": null,
+        "price_history": [
+            {
+                "timestamp": 1788248356,
+                "price": 0.0024308232811462555
+            }
+        ],
+        "alert_levels": {
+            "15m": {
+                "up": null,
+                "down": null
+            },
+            "30m": {
+                "up": null,
+                "down": null
+            },
+            "1h": {
+                "up": null,
+                "down": null
+            }
+        }
     },
     "PYTH": {
         "start_price": 0.05717959649440031,
         "start_volume": null,
         "last_up_alert": null,
-        "last_down_alert": 11
+        "last_down_alert": 11,
+        "price_history": [
+            {
+                "timestamp": 1788248356,
+                "price": 0.05025172389869015
+            }
+        ],
+        "alert_levels": {
+            "15m": {
+                "up": null,
+                "down": null
+            },
+            "30m": {
+                "up": null,
+                "down": null
+            },
+            "1h": {
+                "up": null,
+                "down": null
+            }
+        }
     },
     "W": {
         "start_price": 0.00959132108691356,
         "start_volume": null,
         "last_up_alert": null,
-        "last_down_alert": null
+        "last_down_alert": null,
+        "price_history": [
+            {
+                "timestamp": 1788248356,
+                "price": 0.009571260804939167
+            }
+        ],
+        "alert_levels": {
+            "15m": {
+                "up": null,
+                "down": null
+            },
+            "30m": {
+                "up": null,
+                "down": null
+            },
+            "1h": {
+                "up": null,
+                "down": null
+            }
+        }
     },
     "JUP": {
         "start_price": 0.22232049674437163,
         "start_volume": null,
         "last_up_alert": null,
-        "last_down_alert": null
+        "last_down_alert": null,
+        "price_history": [
+            {
+                "timestamp": 1788248356,
+                "price": 0.22035493254144023
+            }
+        ],
+        "alert_levels": {
+            "15m": {
+                "up": null,
+                "down": null
+            },
+            "30m": {
+                "up": null,
+                "down": null
+            },
+            "1h": {
+                "up": null,
+                "down": null
+            }
+        }
     },
     "BOME": {
         "start_price": 0.0008772741525926371,
         "start_volume": null,
         "last_up_alert": null,
-        "last_down_alert": null
+        "last_down_alert": null,
+        "price_history": [
+            {
+                "timestamp": 1788248356,
+                "price": 0.0008772741525926371
+            }
+        ],
+        "alert_levels": {
+            "15m": {
+                "up": null,
+                "down": null
+            },
+            "30m": {
+                "up": null,
+                "down": null
+            },
+            "1h": {
+                "up": null,
+                "down": null
+            }
+        }
     },
     "MEW": {
         "start_price": 0.0004203395750078454,
         "start_volume": null,
         "last_up_alert": null,
-        "last_down_alert": null
+        "last_down_alert": null,
+        "price_history": [
+            {
+                "timestamp": 1788248356,
+                "price": 0.00041808148281220883
+            }
+        ],
+        "alert_levels": {
+            "15m": {
+                "up": null,
+                "down": null
+            },
+            "30m": {
+                "up": null,
+                "down": null
+            },
+            "1h": {
+                "up": null,
+                "down": null
+            }
+        }
     }
 }
