@@ -10,5 +10,29 @@
         "start_volume": null,
         "last_up_alert": null,
         "last_down_alert": 11
+    },
+    "W": {
+        "start_price": 0.00959132108691356,
+        "start_volume": null,
+        "last_up_alert": null,
+        "last_down_alert": null
+    },
+    "JUP": {
+        "start_price": 0.22232049674437163,
+        "start_volume": null,
+        "last_up_alert": null,
+        "last_down_alert": null
+    },
+    "BOME": {
+        "start_price": 0.0008772741525926371,
+        "start_volume": null,
+        "last_up_alert": null,
+        "last_down_alert": null
+    },
+    "MEW": {
+        "start_price": 0.0004203395750078454,
+        "start_volume": null,
+        "last_up_alert": null,
+        "last_down_alert": null
     }
 }
