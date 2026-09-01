@@ -1,7 +1,21 @@
 """
 Crypto Alerts
-Alerts v1.1
+Alerts v1.2
+
+Alerty cenowe:
+15m / 30m / 1h
+
+Progi:
+11%
+20%
+30%
+40%
+...
+
+Bot sprawdza ceny co 5 minut.
 """
+
+import time
 
 from config import (
     FIRST_PRICE_ALERT,
@@ -16,6 +30,15 @@ from storage import (
     load_storage,
     save_storage
 )
+
+
+HISTORY_SECONDS = 60 * 60 + 10
+
+INTERVALS = {
+    "15m": 15 * 60,
+    "30m": 30 * 60,
+    "1h": 60 * 60,
+}
 
 
 def _percent_change(old_price, new_price):
@@ -56,11 +79,67 @@ def _next_level(previous_level, current_change):
     return None
 
 
+def _find_price(history, target_time):
+    """
+    Znajduje najbliższą cenę z historii
+    dla wymaganego czasu.
+    """
+
+    if not history:
+        return None
+
+    best_price = None
+    best_difference = None
+
+    for entry in history:
+
+        timestamp = entry.get("timestamp")
+        price = entry.get("price")
+
+        if timestamp is None or price is None:
+            continue
+
+        difference = abs(timestamp - target_time)
+
+        if best_difference is None or difference < best_difference:
+            best_difference = difference
+            best_price = price
+
+    return best_price
+
+
+def _clean_history(history, current_time):
+    """
+    Usuwa stare wpisy.
+
+    Zostawiamy trochę ponad 1 godzinę,
+    aby zawsze można było policzyć interwał 1h.
+    """
+
+    minimum_time = current_time - HISTORY_SECONDS
+
+    cleaned = []
+
+    for entry in history:
+
+        timestamp = entry.get("timestamp")
+
+        if timestamp is None:
+            continue
+
+        if timestamp >= minimum_time:
+            cleaned.append(entry)
+
+    return cleaned
+
+
 def check_alerts(market):
 
     storage = load_storage()
 
     messages = []
+
+    current_time = int(time.time())
 
     for symbol, data in market.items():
 
@@ -72,65 +151,141 @@ def check_alerts(market):
 
         token = storage.get(symbol, {})
 
-        start_price = token.get("start_price")
+        # -------------------------------------------------
+        # HISTORIA CEN
+        # -------------------------------------------------
+
+        history = token.get("price_history", [])
+
+        if not isinstance(history, list):
+            history = []
+
+        history.append({
+            "timestamp": current_time,
+            "price": price
+        })
+
+        history = _clean_history(
+            history,
+            current_time
+        )
+
+        token["price_history"] = history
+
+        # -------------------------------------------------
+        # STAN ALERTÓW
+        # -------------------------------------------------
+
+        alert_levels = token.get(
+            "alert_levels",
+            {}
+        )
+
+        if not isinstance(alert_levels, dict):
+            alert_levels = {}
+
+        # -------------------------------------------------
+        # SPRAWDZANIE 15m / 30m / 1h
+        # -------------------------------------------------
+
+        for interval_name, interval_seconds in INTERVALS.items():
+
+            target_time = (
+                current_time - interval_seconds
+            )
+
+            old_price = _find_price(
+                history,
+                target_time
+            )
+
+            if old_price is None:
+                continue
+
+            change = _percent_change(
+                old_price,
+                price
+            )
+
+            interval_state = alert_levels.get(
+                interval_name,
+                {
+                    "up": None,
+                    "down": None
+                }
+            )
+
+            last_up = interval_state.get("up")
+            last_down = interval_state.get("down")
+
+            # ---------------------------------------------
+            # WZROST
+            # ---------------------------------------------
+
+            if change >= 0:
+
+                level = _next_level(
+                    last_up,
+                    change
+                )
+
+                if level is not None:
+
+                    messages.append(
+                        f"{GREEN} {symbol} "
+                        f"+{change:.2f}% / {interval_name}"
+                    )
+
+                    interval_state["up"] = level
+                    interval_state["down"] = None
+
+            # ---------------------------------------------
+            # SPADEK
+            # ---------------------------------------------
+
+            else:
+
+                level = _next_level(
+                    last_down,
+                    change
+                )
+
+                if level is not None:
+
+                    messages.append(
+                        f"{RED} {symbol} "
+                        f"{change:.2f}% / {interval_name}"
+                    )
+
+                    interval_state["down"] = level
+                    interval_state["up"] = None
+
+            alert_levels[interval_name] = interval_state
+
+        token["alert_levels"] = alert_levels
+
+        # -------------------------------------------------
+        # WOLUMEN
+        # -------------------------------------------------
+
         start_volume = token.get("start_volume")
 
-        last_up = token.get("last_up_alert")
-        last_down = token.get("last_down_alert")
+        if start_volume is None:
 
-        if start_price is None:
+            token["start_volume"] = volume
 
-            token = {
-                "start_price": price,
-                "start_volume": volume,
-                "last_up_alert": None,
-                "last_down_alert": None
-            }
-
-            storage[symbol] = token
-            continue
-
-        change = _percent_change(start_price, price)
-
-        # Wzrost
-        if change >= 0:
-
-            level = _next_level(last_up, change)
-
-            if level is not None:
-
-                messages.append(
-                    f"{GREEN} {symbol} +{change:.2f}%"
-                )
-
-                token["last_up_alert"] = level
-                token["last_down_alert"] = None
-
-        # Spadek
-        else:
-
-            level = _next_level(last_down, change)
-
-            if level is not None:
-
-                messages.append(
-                    f"{RED} {symbol} {change:.2f}%"
-                )
-
-                token["last_down_alert"] = level
-                token["last_up_alert"] = None
-
-        # Alert wolumenu
-        if start_volume and volume:
+        elif start_volume and volume:
 
             volume_change = (
-                (volume - start_volume) / start_volume
+                (volume - start_volume)
+                / start_volume
             ) * 100
 
             if volume_change >= VOLUME_ALERT_PERCENT:
 
                 messages.append(
-                    f"{BLUE} {symbol} Wolumen +{volume_change:.0f}%"
+                    f"{BLUE} {symbol} "
+                    f"Wolumen +{volume_change:.0f}%"
                 )
 
                 token["start_volume"] = volume
