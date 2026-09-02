@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Alerts v1.2
+Alerts v1.3
 
 Alerty cenowe:
 15m / 30m / 1h
@@ -32,7 +32,15 @@ from storage import (
 )
 
 
+# Historia obejmuje trochę ponad 1 godzinę.
 HISTORY_SECONDS = 60 * 60 + 10
+
+
+# Maksymalna tolerancja względem wymaganego czasu.
+# Przy pomiarze co 5 minut pozwala znaleźć właściwy punkt
+# nawet przy niewielkim opóźnieniu GitHub Actions.
+TIME_TOLERANCE_SECONDS = 4 * 60
+
 
 INTERVALS = {
     "15m": 15 * 60,
@@ -81,8 +89,19 @@ def _next_level(previous_level, current_change):
 
 def _find_price(history, target_time):
     """
-    Znajduje najbliższą cenę z historii
-    dla wymaganego czasu.
+    Znajduje cenę najbliższą wymaganemu czasowi.
+
+    Cena zostanie wykorzystana tylko wtedy,
+    gdy punkt znajduje się w rozsądnej tolerancji
+    względem wymaganego czasu.
+
+    Dzięki temu:
+    15m = około 15 minut
+    30m = około 30 minut
+    1h  = około 60 minut
+
+    Nie używamy przypadkowo bardzo starego
+    lub bardzo świeżego punktu.
     """
 
     if not history:
@@ -101,7 +120,11 @@ def _find_price(history, target_time):
 
         difference = abs(timestamp - target_time)
 
+        if difference > TIME_TOLERANCE_SECONDS:
+            continue
+
         if best_difference is None or difference < best_difference:
+
             best_difference = difference
             best_price = price
 
@@ -199,6 +222,8 @@ def check_alerts(market):
                 target_time
             )
 
+            # Nie ma jeszcze odpowiednio starego
+            # pomiaru — niczego nie liczymy.
             if old_price is None:
                 continue
 
@@ -214,6 +239,12 @@ def check_alerts(market):
                     "down": None
                 }
             )
+
+            if not isinstance(interval_state, dict):
+                interval_state = {
+                    "up": None,
+                    "down": None
+                }
 
             last_up = interval_state.get("up")
             last_down = interval_state.get("down")
