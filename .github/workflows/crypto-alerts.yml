@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "2/5 * * * *"
+    - cron: "7 * * * *"
 
 permissions:
   contents: write
@@ -27,13 +27,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Crypto Alerts
+      - name: Run Crypto Alerts every 5 minutes
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: |
-          python main.py
+          for i in $(seq 1 70)
+          do
+            echo "========================================"
+            echo "Crypto Alerts - pomiar $i/70"
+            echo "========================================"
+
+            python main.py
+
+            if [ "$i" -lt 70 ]; then
+              echo "⏳ Czekam 4 minuty do następnego pomiaru..."
+              sleep 240
+            fi
+          done
 
       - name: Save storage.json
         run: |
