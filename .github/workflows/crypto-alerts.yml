@@ -22,8 +22,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
-      - name: Get latest main
+      - name: Synchronize with latest main
         run: |
           git fetch origin main
           git reset --hard origin/main
@@ -55,7 +56,25 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "ℹ️ Brak zmian w storage.json."
-          else
-            git commit -m "Update crypto alerts storage"
-            git push
+            exit 0
           fi
+
+          git commit -m "Update crypto alerts storage"
+
+          for i in 1 2 3; do
+            git fetch origin main
+
+            if git rebase origin/main; then
+              if git push origin HEAD:main; then
+                echo "✅ storage.json zapisany."
+                exit 0
+              fi
+            fi
+
+            echo "⚠️ Próba $i nieudana. Ponawiam..."
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done
+
+          echo "❌ Nie udało się zapisać storage.json."
+          exit 1
