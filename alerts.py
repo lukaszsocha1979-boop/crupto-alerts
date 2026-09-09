@@ -1,9 +1,9 @@
 """
 Crypto Alerts
-Alerts v1.3
+Alerts v1.4
 
 Alerty cenowe:
-15m / 30m / 1h
+15m / 30m / 1h / 4h
 
 Progi:
 11%
@@ -32,13 +32,14 @@ from storage import (
 )
 
 
-# Historia obejmuje trochę ponad 1 godzinę.
-HISTORY_SECONDS = 60 * 60 + 10
+# Historia obejmuje trochę ponad 4 godziny.
+# Dzięki temu można poprawnie policzyć interwał 4h.
+HISTORY_SECONDS = 4 * 60 * 60 + 10 * 60
 
 
 # Maksymalna tolerancja względem wymaganego czasu.
-# Przy pomiarze co 5 minut pozwala znaleźć właściwy punkt
-# nawet przy niewielkim opóźnieniu GitHub Actions.
+# Przy pomiarze co około 5 minut pozwala znaleźć
+# właściwy punkt nawet przy niewielkim opóźnieniu GitHub Actions.
 TIME_TOLERANCE_SECONDS = 4 * 60
 
 
@@ -46,6 +47,7 @@ INTERVALS = {
     "15m": 15 * 60,
     "30m": 30 * 60,
     "1h": 60 * 60,
+    "4h": 4 * 60 * 60,
 }
 
 
@@ -96,12 +98,11 @@ def _find_price(history, target_time):
     względem wymaganego czasu.
 
     Dzięki temu:
+
     15m = około 15 minut
     30m = około 30 minut
     1h  = około 60 minut
-
-    Nie używamy przypadkowo bardzo starego
-    lub bardzo świeżego punktu.
+    4h  = około 240 minut
     """
 
     if not history:
@@ -135,8 +136,8 @@ def _clean_history(history, current_time):
     """
     Usuwa stare wpisy.
 
-    Zostawiamy trochę ponad 1 godzinę,
-    aby zawsze można było policzyć interwał 1h.
+    Zostawiamy trochę ponad 4 godziny,
+    aby zawsze można było policzyć interwał 4h.
     """
 
     minimum_time = current_time - HISTORY_SECONDS
@@ -174,10 +175,6 @@ def check_alerts(market):
 
         token = storage.get(symbol, {})
 
-        # -------------------------------------------------
-        # HISTORIA CEN
-        # -------------------------------------------------
-
         history = token.get("price_history", [])
 
         if not isinstance(history, list):
@@ -195,10 +192,6 @@ def check_alerts(market):
 
         token["price_history"] = history
 
-        # -------------------------------------------------
-        # STAN ALERTÓW
-        # -------------------------------------------------
-
         alert_levels = token.get(
             "alert_levels",
             {}
@@ -206,10 +199,6 @@ def check_alerts(market):
 
         if not isinstance(alert_levels, dict):
             alert_levels = {}
-
-        # -------------------------------------------------
-        # SPRAWDZANIE 15m / 30m / 1h
-        # -------------------------------------------------
 
         for interval_name, interval_seconds in INTERVALS.items():
 
@@ -222,8 +211,6 @@ def check_alerts(market):
                 target_time
             )
 
-            # Nie ma jeszcze odpowiednio starego
-            # pomiaru — niczego nie liczymy.
             if old_price is None:
                 continue
 
@@ -249,10 +236,6 @@ def check_alerts(market):
             last_up = interval_state.get("up")
             last_down = interval_state.get("down")
 
-            # ---------------------------------------------
-            # WZROST
-            # ---------------------------------------------
-
             if change >= 0:
 
                 level = _next_level(
@@ -269,10 +252,6 @@ def check_alerts(market):
 
                     interval_state["up"] = level
                     interval_state["down"] = None
-
-            # ---------------------------------------------
-            # SPADEK
-            # ---------------------------------------------
 
             else:
 
@@ -294,10 +273,6 @@ def check_alerts(market):
             alert_levels[interval_name] = interval_state
 
         token["alert_levels"] = alert_levels
-
-        # -------------------------------------------------
-        # WOLUMEN
-        # -------------------------------------------------
 
         start_volume = token.get("start_volume")
 
