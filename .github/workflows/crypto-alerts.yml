@@ -4,14 +4,10 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "2/5 * * * *"
 
 permissions:
   contents: write
-
-concurrency:
-  group: crypto-alerts
-  cancel-in-progress: false
 
 jobs:
   run:
@@ -20,14 +16,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
 
-      - name: Synchronize with latest main
+      - name: Check storage before run
         run: |
-          git fetch origin main
-          git reset --hard origin/main
+          echo "=== STORAGE BEFORE ==="
+
+          if [ -f storage.json ]; then
+            python - <<'PY'
+          import json
+
+          with open("storage.json", "r", encoding="utf-8") as file:
+              data = json.load(file)
+
+          for symbol, token in data.items():
+              history = token.get("price_history", [])
+
+              print(f"{symbol}: {len(history)} punktów historii")
+          PY
+          else
+            echo "storage.json nie istnieje."
+          fi
+
+          echo "======================"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -47,6 +57,28 @@ jobs:
         run: |
           python main.py
 
+      - name: Check storage after run
+        run: |
+          echo "=== STORAGE AFTER ==="
+
+          if [ -f storage.json ]; then
+            python - <<'PY'
+          import json
+
+          with open("storage.json", "r", encoding="utf-8") as file:
+              data = json.load(file)
+
+          for symbol, token in data.items():
+              history = token.get("price_history", [])
+
+              print(f"{symbol}: {len(history)} punktów historii")
+          PY
+          else
+            echo "storage.json nie istnieje."
+          fi
+
+          echo "====================="
+
       - name: Save storage.json
         run: |
           git config user.name "github-actions[bot]"
@@ -56,25 +88,7 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "ℹ️ Brak zmian w storage.json."
-            exit 0
+          else
+            git commit -m "Update crypto alerts storage"
+            git push
           fi
-
-          git commit -m "Update crypto alerts storage"
-
-          for i in 1 2 3; do
-            git fetch origin main
-
-            if git rebase origin/main; then
-              if git push origin HEAD:main; then
-                echo "✅ storage.json zapisany."
-                exit 0
-              fi
-            fi
-
-            echo "⚠️ Próba $i nieudana. Ponawiam..."
-            git rebase --abort 2>/dev/null || true
-            sleep 5
-          done
-
-          echo "❌ Nie udało się zapisać storage.json."
-          exit 1
