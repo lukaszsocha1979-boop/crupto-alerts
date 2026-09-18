@@ -4,7 +4,11 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "2/5 * * * *"
+    - cron: "*/5 * * * *"
+
+concurrency:
+  group: crypto-alerts
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -14,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check storage before run
         run: |
@@ -30,7 +36,6 @@ jobs:
 
           for symbol, token in data.items():
               history = token.get("price_history", [])
-
               print(f"{symbol}: {len(history)} punktów historii")
           PY
           else
@@ -70,7 +75,6 @@ jobs:
 
           for symbol, token in data.items():
               history = token.get("price_history", [])
-
               print(f"{symbol}: {len(history)} punktów historii")
           PY
           else
@@ -87,7 +91,7 @@ jobs:
           git add storage.json
 
           if git diff --cached --quiet; then
-            echo "ℹ️ Brak zmian w storage.json."
+            echo "Brak zmian w storage.json."
           else
             git commit -m "Update crypto alerts storage"
             git push
