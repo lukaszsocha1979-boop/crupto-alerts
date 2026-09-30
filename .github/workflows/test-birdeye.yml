@@ -1,0 +1,53 @@
+name: Test Birdeye ZEUS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Test Birdeye ZEUS
+        env:
+          BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+        run: |
+          python - <<'PY'
+          from birdeye import get_price
+          from tokens import TOKENS
+
+          mint = TOKENS["ZEUS"]["mint"]
+
+          print("🚀 TEST BIRDEYE — ZEUS")
+          print("Mint:", mint)
+          print()
+
+          try:
+              price = get_price(mint)
+
+              print()
+              print("✅ TEST ZAKOŃCZONY")
+              print("ZEUS price:", price)
+
+          except Exception as e:
+              print()
+              print("❌ TEST NIEUDANY")
+              print(type(e).__name__, ":", e)
+              raise
+          PY
