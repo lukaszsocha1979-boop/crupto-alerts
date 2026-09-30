@@ -1,4 +1,4 @@
-name: Test Birdeye ZEUS
+name: Test Birdeye ZEUS V3
 
 on:
   workflow_dispatch:
@@ -22,32 +22,46 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install requests
 
-      - name: Test Birdeye ZEUS
+      - name: Test Birdeye V3 ZEUS
         env:
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: |
           python - <<'PY'
-          from birdeye import get_price
-          from tokens import TOKENS
+          import os
+          import requests
 
-          mint = TOKENS["ZEUS"]["mint"]
+          url = "https://public-api.birdeye.so/defi/v3/price/stats/single"
 
-          print("🚀 TEST BIRDEYE — ZEUS")
-          print("Mint:", mint)
+          params = {
+              "address": "ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq",
+              "list_timeframe": "15m,30m,1h,4h"
+          }
+
+          headers = {
+              "accept": "application/json",
+              "x-chain": "solana",
+              "X-API-KEY": os.environ["BIRDEYE_API_KEY"]
+          }
+
+          print("🚀 TEST BIRDEYE V3 — ZEUS")
+          print()
+          print("URL:", url)
+          print("Params:", params)
           print()
 
-          try:
-              price = get_price(mint)
+          response = requests.get(
+              url,
+              params=params,
+              headers=headers,
+              timeout=30
+          )
 
-              print()
-              print("✅ TEST ZAKOŃCZONY")
-              print("ZEUS price:", price)
+          print("Status:", response.status_code)
+          print("Response:")
+          print(response.text)
 
-          except Exception as e:
-              print()
-              print("❌ TEST NIEUDANY")
-              print(type(e).__name__, ":", e)
-              raise
+          if response.status_code != 200:
+              raise SystemExit(1)
           PY
