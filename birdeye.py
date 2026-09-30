@@ -1,6 +1,16 @@
 """
 Crypto Alerts
-Birdeye API v1.3
+Birdeye API v1.4
+
+Aktualny endpoint cenowy:
+ /defi/v3/price/stats/single
+
+Stary:
+ /defi/price
+
+Stary endpoint zwracał:
+Compute units usage limit exceeded
+mimo dostępnych CU.
 """
 
 import requests
@@ -33,7 +43,6 @@ def _request(endpoint: str, params: dict | None = None):
         timeout=20,
     )
 
-    # Diagnostyka odpowiedzi Birdeye
     print("=== BIRDEYE DEBUG ===")
     print("URL:", response.url)
     print("Status:", response.status_code)
@@ -61,36 +70,59 @@ def _request(endpoint: str, params: dict | None = None):
             f"Birdeye API error: {data}"
         )
 
-    return data.get("data", {})
+    return data.get("data", [])
 
 
 def get_price(mint: str):
     """
     Pobiera aktualną cenę tokena.
 
-    Endpoint:
-    /defi/price
+    Używamy:
+    /defi/v3/price/stats/single
 
-    Koszt:
-    3 CU
+    Pobieramy jeden timeframe: 30m.
+    Aktualna cena jest zwracana w polu price.
     """
 
     data = _request(
-        "/defi/price",
+        "/defi/v3/price/stats/single",
         {
             "address": mint,
+            "list_timeframe": "30m",
         },
     )
 
-    return data.get("value")
+    if not data:
+        raise RuntimeError(
+            "Birdeye V3: brak danych dla tokena"
+        )
+
+    token_data = data[0]
+
+    timeframe_data = token_data.get("data", [])
+
+    if not timeframe_data:
+        raise RuntimeError(
+            "Birdeye V3: brak danych timeframe"
+        )
+
+    price = timeframe_data[0].get("price")
+
+    if price is None:
+        raise RuntimeError(
+            "Birdeye V3: brak aktualnej ceny"
+        )
+
+    return price
 
 
 def get_market_data(mint: str):
     """
     Zwraca dane w formacie zgodnym z market.py.
 
-    W tej wersji pobieramy tylko aktualną cenę,
-    aby ograniczyć zużycie Compute Units.
+    Aktualnie pobieramy tylko aktualną cenę.
+    Historię i alerty nadal obsługuje alerts.py
+    oraz storage.json.
     """
 
     price = get_price(mint)
