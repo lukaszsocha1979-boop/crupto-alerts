@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 */6 * * *"
 
 concurrency:
   group: crypto-alerts
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   monitor:
@@ -34,19 +34,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Crypto Alerts - 240 sprawdzeń co 6 minut
+      - name: Crypto Alerts - 60 sprawdzeń co 6 minut
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: |
 
-          for i in $(seq 1 240)
+          for i in $(seq 1 60)
           do
 
             echo ""
             echo "========================================"
-            echo "🔄 Crypto Alerts - sprawdzenie $i/240"
+            echo "🔄 Crypto Alerts - sprawdzenie $i/60"
             echo "========================================"
 
             echo ""
@@ -111,7 +111,7 @@ jobs:
               git push
             fi
 
-            if [ "$i" -lt 240 ]; then
+            if [ "$i" -lt 60 ]; then
               echo ""
               echo "⏳ Czekam 6 minut do następnego sprawdzenia..."
               sleep 360
@@ -121,5 +121,5 @@ jobs:
 
           echo ""
           echo "========================================"
-          echo "✅ Zakończono 240 sprawdzeń."
+          echo "✅ Zakończono 60 sprawdzeń."
           echo "========================================"
