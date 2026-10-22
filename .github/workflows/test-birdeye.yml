@@ -1,4 +1,5 @@
-name: Test Birdeye ZEUS V3
+
+name: Test Birdeye W V3
 
 on:
   workflow_dispatch:
@@ -24,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Test Birdeye V3 ZEUS
+      - name: Test Birdeye V3 W
         env:
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: |
@@ -35,7 +36,7 @@ jobs:
           url = "https://public-api.birdeye.so/defi/v3/price/stats/single"
 
           params = {
-              "address": "ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq",
+              "address": "85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ",
               "list_timeframe": "30m,1h,4h"
           }
 
@@ -45,11 +46,8 @@ jobs:
               "X-API-KEY": os.environ["BIRDEYE_API_KEY"]
           }
 
-          print("🚀 TEST BIRDEYE V3 — ZEUS")
-          print()
-          print("URL:", url)
+          print("TEST BIRDEYE V3 — W (Wormhole)")
           print("Params:", params)
-          print()
 
           response = requests.get(
               url,
@@ -59,6 +57,8 @@ jobs:
           )
 
           print("Status:", response.status_code)
+          print("Remaining-CU:", response.headers.get("x-credits-remaining"))
+          print("Used-CU:", response.headers.get("x-credits-used"))
           print("Response:")
           print(response.text)
 
