@@ -6,10 +6,6 @@
         "last_down_alert": null,
         "price_history": [
             {
-                "timestamp": 1792897157,
-                "price": 0.007029817014693643
-            },
-            {
                 "timestamp": 1792897531,
                 "price": 0.0068918740695063044
             },
@@ -164,6 +160,10 @@
             {
                 "timestamp": 1792911787,
                 "price": 0.006922923134391059
+            },
+            {
+                "timestamp": 1792912162,
+                "price": 0.006920099420823675
             }
         ],
         "alert_levels": {
@@ -191,10 +191,6 @@
         "last_up_alert": null,
         "last_down_alert": 11,
         "price_history": [
-            {
-                "timestamp": 1792897157,
-                "price": 0.0709548367089627
-            },
             {
                 "timestamp": 1792897531,
                 "price": 0.07078400082223114
@@ -350,6 +346,10 @@
             {
                 "timestamp": 1792911787,
                 "price": 0.07038934077265499
+            },
+            {
+                "timestamp": 1792912162,
+                "price": 0.07060696553233436
             }
         ],
         "alert_levels": {
@@ -377,10 +377,6 @@
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
-            {
-                "timestamp": 1792897157,
-                "price": 0.012140809225273805
-            },
             {
                 "timestamp": 1792897531,
                 "price": 0.012122165963712277
@@ -536,6 +532,10 @@
             {
                 "timestamp": 1792911787,
                 "price": 0.012121189252202715
+            },
+            {
+                "timestamp": 1792912162,
+                "price": 0.012095465710160007
             }
         ],
         "alert_levels": {
@@ -563,10 +563,6 @@
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
-            {
-                "timestamp": 1792897157,
-                "price": 0.2877471011070148
-            },
             {
                 "timestamp": 1792897531,
                 "price": 0.2874173184423557
@@ -722,6 +718,10 @@
             {
                 "timestamp": 1792911787,
                 "price": 0.2824290262002784
+            },
+            {
+                "timestamp": 1792912162,
+                "price": 0.2825921190416299
             }
         ],
         "alert_levels": {
@@ -749,10 +749,6 @@
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
-            {
-                "timestamp": 1792897157,
-                "price": 0.0006224511529347241
-            },
             {
                 "timestamp": 1792897531,
                 "price": 0.0006207618423791582
@@ -908,6 +904,10 @@
             {
                 "timestamp": 1792911787,
                 "price": 0.000622827082202121
+            },
+            {
+                "timestamp": 1792912162,
+                "price": 0.000622827082202121
             }
         ],
         "alert_levels": {
@@ -935,10 +935,6 @@
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
-            {
-                "timestamp": 1792897157,
-                "price": 0.00047229946791567964
-            },
             {
                 "timestamp": 1792897531,
                 "price": 0.0004714936606009337
@@ -1094,6 +1090,10 @@
             {
                 "timestamp": 1792911787,
                 "price": 0.00046444001982413115
+            },
+            {
+                "timestamp": 1792912162,
+                "price": 0.0004639001666984395
             }
         ],
         "alert_levels": {
