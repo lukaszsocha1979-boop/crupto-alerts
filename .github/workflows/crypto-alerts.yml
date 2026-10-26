@@ -16,7 +16,6 @@ jobs:
       contents: write
 
     steps:
-
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
         with:
@@ -32,26 +31,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Crypto Alerts - 60 sprawdzeń co 6 minut
+      - name: Crypto Alerts - jedno sprawdzenie
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
         run: |
+          echo "=== STORAGE BEFORE RUN ==="
 
-          for i in $(seq 1 60)
-          do
-
-            echo ""
-            echo "========================================"
-            echo "🔄 Crypto Alerts - sprawdzenie $i/60"
-            echo "========================================"
-
-            echo ""
-            echo "=== STORAGE BEFORE RUN ==="
-
-            if [ -f storage.json ]; then
-              python - <<'PY'
+          if [ -f storage.json ]; then
+            python - <<'PY'
           import json
 
           try:
@@ -65,20 +54,17 @@ jobs:
           except Exception as e:
               print("Błąd odczytu storage:", e)
           PY
-            else
-              echo "Brak storage.json"
-            fi
+          else
+            echo "Brak storage.json"
+          fi
 
-            echo ""
-            echo "🚀 Uruchamiam Crypto Alerts..."
+          echo "Uruchamiam Crypto Alerts..."
+          python main.py
 
-            python main.py
+          echo "=== STORAGE AFTER RUN ==="
 
-            echo ""
-            echo "=== STORAGE AFTER RUN ==="
-
-            if [ -f storage.json ]; then
-              python - <<'PY'
+          if [ -f storage.json ]; then
+            python - <<'PY'
           import json
 
           try:
@@ -92,32 +78,20 @@ jobs:
           except Exception as e:
               print("Błąd odczytu storage:", e)
           PY
-            fi
+          fi
 
-            echo ""
-            echo "💾 Zapisuję storage.json..."
+          echo "Zapisuję storage.json..."
 
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            git add storage.json
+          git add storage.json
 
-            if git diff --cached --quiet; then
-              echo "ℹ️ Brak zmian w storage.json."
-            else
-              git commit -m "Update crypto alerts storage"
-              git push
-            fi
+          if git diff --cached --quiet; then
+            echo "Brak zmian w storage.json."
+          else
+            git commit -m "Update crypto alerts storage"
+            git push
+          fi
 
-            if [ "$i" -lt 60 ]; then
-              echo ""
-              echo "⏳ Czekam 6 minut do następnego sprawdzenia..."
-              sleep 360
-            fi
-
-          done
-
-          echo ""
-          echo "========================================"
-          echo "✅ Zakończono 60 sprawdzeń."
-          echo "========================================"
+          echo "Zakończono jedno sprawdzenie."
