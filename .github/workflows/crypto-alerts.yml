@@ -3,6 +3,8 @@ name: Crypto Alerts
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
 
 concurrency:
   group: crypto-alerts
