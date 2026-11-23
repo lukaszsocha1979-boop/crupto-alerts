@@ -35,7 +35,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          BIRDEYE_API_KEY: ${{ secrets.BIRDEYE_API_KEY }}
+
         run: |
           echo "=== STORAGE BEFORE RUN ==="
 
@@ -53,6 +53,7 @@ jobs:
 
           except Exception as e:
               print("Błąd odczytu storage:", e)
+              raise
           PY
           else
             echo "Brak storage.json"
@@ -77,6 +78,7 @@ jobs:
 
           except Exception as e:
               print("Błąd odczytu storage:", e)
+              raise
           PY
           fi
 
