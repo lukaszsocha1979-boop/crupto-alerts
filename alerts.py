@@ -1,7 +1,7 @@
 
 """
 Crypto Alerts
-Alerts v1.6
+Alerts v1.7
 
 Interwały:
 15m / 30m / 1h / 4h / 1d
@@ -12,6 +12,7 @@ Następnie co 6%.
 """
 
 import time
+
 from config import (
     NEXT_PRICE_ALERT_STEP,
     PRICE_ALERT_LEVELS,
@@ -20,15 +21,16 @@ from config import (
     RED,
     BLUE
 )
+
 from storage import load_storage, save_storage
 
 
 # Historia obejmuje 24 godziny i 10 minut.
 HISTORY_SECONDS = 24 * 60 * 60 + 10 * 60
 
-# Dopuszczalne odchylenie przy wyszukiwaniu
-# historycznej ceny sprzed badanego momentu.
+# Dopuszczalne odchylenie przy wyszukiwaniu ceny historycznej.
 TIME_TOLERANCE_SECONDS = 7 * 60
+
 
 INTERVALS = {
     "15m": 15 * 60,
@@ -90,7 +92,7 @@ def _highest_reached_level(change):
 def _next_level(previous_level, current_change):
     """
     Zwraca najwyższy nowo osiągnięty próg.
-    Nie wysyła zaległych alertów po jednym na kolejne uruchomienia.
+    Nie wysyła zaległych alertów w kolejnych uruchomieniach.
     """
 
     highest = _highest_reached_level(current_change)
@@ -139,7 +141,10 @@ def _find_price(history, target_time):
     if not candidates:
         return None
 
-    candidates.sort(key=lambda item: item[0], reverse=True)
+    candidates.sort(
+        key=lambda item: item[0],
+        reverse=True
+    )
 
     return candidates[0][1]
 
@@ -151,9 +156,11 @@ def _clean_history(history, current_time):
     cleaned = []
 
     for entry in history:
+
         try:
             timestamp = float(entry.get("timestamp"))
             price = float(entry.get("price"))
+
         except (TypeError, ValueError, AttributeError):
             continue
 
@@ -203,6 +210,7 @@ def check_alerts(market):
         })
 
         history = _clean_history(history, current_time)
+
         token["price_history"] = history
 
         alert_levels = token.get("alert_levels", {})
@@ -227,16 +235,24 @@ def check_alerts(market):
             )
 
             if not isinstance(interval_state, dict):
-                interval_state = {"up": None, "down": None}
+                interval_state = {
+                    "up": None,
+                    "down": None
+                }
 
-            last_up = interval_state.get("up")
-            last_down = interval_state.get("down")
-
+            # Ruch wzrostowy.
             if change > 0:
 
-                level = _next_level(last_up, change)
+                # Reset poprzedniego stanu spadkowego.
+                interval_state["down"] = None
+
+                level = _next_level(
+                    interval_state.get("up"),
+                    change
+                )
 
                 if level is not None:
+
                     messages.append(
                         f"{GREEN} {symbol} "
                         f"+{change:.2f}% / {interval_name} "
@@ -244,13 +260,20 @@ def check_alerts(market):
                     )
 
                     interval_state["up"] = level
-                    interval_state["down"] = None
 
+            # Ruch spadkowy.
             elif change < 0:
 
-                level = _next_level(last_down, change)
+                # Reset poprzedniego stanu wzrostowego.
+                interval_state["up"] = None
+
+                level = _next_level(
+                    interval_state.get("down"),
+                    change
+                )
 
                 if level is not None:
+
                     messages.append(
                         f"{RED} {symbol} "
                         f"{change:.2f}% / {interval_name} "
@@ -258,28 +281,33 @@ def check_alerts(market):
                     )
 
                     interval_state["down"] = level
-                    interval_state["up"] = None
 
             alert_levels[interval_name] = interval_state
 
         token["alert_levels"] = alert_levels
 
-        # Alerty wolumenowe
+        # Alerty wolumenowe.
         start_volume = token.get("start_volume")
 
         if volume is not None:
+
             try:
                 volume = float(volume)
 
                 if start_volume is None:
+
                     token["start_volume"] = volume
 
                 elif start_volume and volume:
+
+                    start_volume = float(start_volume)
+
                     volume_change = (
-                        (volume - float(start_volume)) / float(start_volume)
+                        (volume - start_volume) / start_volume
                     ) * 100
 
                     if volume_change >= VOLUME_ALERT_PERCENT:
+
                         messages.append(
                             f"{BLUE} {symbol} "
                             f"Wolumen +{volume_change:.0f}%"
@@ -288,7 +316,9 @@ def check_alerts(market):
                         token["start_volume"] = volume
 
             except (TypeError, ValueError):
-                print(f"⚠️ {symbol}: nieprawidłowy wolumen")
+                print(
+                    f"⚠️ {symbol}: nieprawidłowy wolumen"
+                )
 
         storage[symbol] = token
 
