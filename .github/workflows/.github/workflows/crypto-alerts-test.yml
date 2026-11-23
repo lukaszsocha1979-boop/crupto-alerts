@@ -1,0 +1,57 @@
+
+name: Crypto Alerts - Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Zainstaluj Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Zainstaluj biblioteki
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Sprawdź składnię
+        run: |
+          python -m compileall -q .
+
+      - name: Sprawdź importy
+        run: |
+          python -c "import config, tokens, storage, dex_screener, market, alerts, news, telegram_sender, main; print('IMPORTY OK')"
+
+      - name: Test pobierania cen
+        run: |
+          python - <<'PY'
+          from market import get_market
+
+          market = get_market()
+
+          expected = ["ZEUS", "PYTH", "W", "JUP", "SKR", "MEW"]
+
+          for symbol in expected:
+              if symbol not in market:
+                  raise RuntimeError(f"Brak danych dla {symbol}")
+
+              price = market[symbol].get("price")
+
+              if price is None or float(price) <= 0:
+                  raise RuntimeError(f"Nieprawidłowa cena {symbol}")
+
+              print(f"OK {symbol}: ${price}")
+
+          print("TEST DEX SCREENER ZAKOŃCZONY")
+          PY
