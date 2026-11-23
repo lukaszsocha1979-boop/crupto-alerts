@@ -1,9 +1,10 @@
+
 """
 Crypto Alerts
-Tokens v1.5
+Tokens v1.6
 
 Monitorowane tokeny:
-ZEUS, PYTH, W, JUP, BOME i MEW
+ZEUS, PYTH, W, JUP, SKR i MEW
 """
 
 TOKENS = {
@@ -32,10 +33,10 @@ TOKENS = {
         "mint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
     },
 
-    "BOME": {
-        "name": "Book of Meme",
+    "SKR": {
+        "name": "Seeker",
         "chain": "solana",
-        "mint": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82"
+        "mint": "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3"
     },
 
     "MEW": {
