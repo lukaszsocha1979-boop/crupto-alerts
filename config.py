@@ -1,67 +1,51 @@
+
 """
 Crypto Alerts
-Config v1.1
+Config v1.2
 
-W tym pliku NIE przechowujemy kluczy API.
-Klucze pobierane są z GitHub Secrets.
+Konfiguracja alertów i DEX Screener.
 """
 
 import os
 
-# ==================================================
 # Telegram
-# ==================================================
-
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-# ==================================================
-# API
-# ==================================================
-
+# Birdeye – pozostawiamy tymczasowo, ale nie używamy do cen
 BIRDEYE_API_KEY = os.getenv("BIRDEYE_API_KEY")
 
-# ==================================================
 # Bitcoin
-# ==================================================
-
 BTC_SYMBOL = "BTC"
 
-# ==================================================
-# Alerty
-# ==================================================
+# Progi alertów cenowych
+FIRST_PRICE_ALERT = 9
+NEXT_PRICE_ALERT_STEP = 6
 
-FIRST_PRICE_ALERT = 11
-NEXT_PRICE_ALERT_STEP = 10
+# Kolejne progi: 9%, 18%, 24%, 30%, 36%, 42%...
+PRICE_ALERT_LEVELS = [9, 18, 24, 30]
+
+# Alert wolumenu
 VOLUME_ALERT_PERCENT = 100
 
-# Co ile minut uruchamia się GitHub Actions
+# Kontrola co 5 minut
 CHECK_INTERVAL_MINUTES = 5
 
-# ==================================================
-# Storage
-# ==================================================
-
+# Historia cen
 STORAGE_FILE = "storage.json"
 
-# ==================================================
 # Telegram Emojis
-# ==================================================
-
 GREEN = "🟢"
 BLUE = "🔵"
 RED = "🔴"
 
-# ==================================================
-# News
-# ==================================================
-
+# Tokeny do wiadomości
 NEWS_TOKENS = [
     "BTC",
     "ZEUS",
     "PYTH",
     "W",
     "JUP",
-    "BOME",
+    "SKR",
     "MEW"
 ]
