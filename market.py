@@ -1,55 +1,25 @@
+
 """
 Crypto Alerts
-Market v1.3
+Market v1.4
+
+Pobieranie cen przez DEX Screener.
+Jedno zbiorcze zapytanie dla wszystkich tokenów.
 """
 
-import time
-
 from tokens import TOKENS
-from birdeye import get_market_data
+from dex_screener import get_all_market_data
 
 
 def get_market():
-
-    market = {}
-
-    for symbol, token in TOKENS.items():
-
-        mint = token.get("mint")
-
-        if not mint:
-            print(f"⚠️ Brak mint dla {symbol}")
-            continue
-
-        try:
-
-            market[symbol] = get_market_data(mint)
-
-            print(f"✅ {symbol} OK")
-
-            # Krótka przerwa między requestami.
-            # Chroni przed rate limit.
-            time.sleep(2)
-
-        except Exception as e:
-
-            print(f"❌ {symbol}: {e}")
-
-            time.sleep(2)
-
-    return market
+    return get_all_market_data()
 
 
 def get_token(symbol: str):
 
-    token = TOKENS.get(symbol)
-
-    if token is None:
+    if symbol not in TOKENS:
         return None
 
-    mint = token.get("mint")
+    market = get_all_market_data()
 
-    if not mint:
-        return None
-
-    return get_market_data(mint)
+    return market.get(symbol)
