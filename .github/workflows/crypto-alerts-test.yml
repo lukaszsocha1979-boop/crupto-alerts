@@ -1,54 +1,57 @@
 
-      - name: Test logiki alertów
+name: Crypto Alerts - Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Zainstaluj Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Zainstaluj biblioteki
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Sprawdź składnię
+        run: |
+          python -m compileall -q .
+
+      - name: Sprawdź importy
+        run: |
+          python -c "import config, tokens, storage, dex_screener, market, alerts, news, telegram_sender, main; print('IMPORTY OK')"
+
+      - name: Test pobierania cen
         run: |
           python - <<'PY'
-          import alerts
+          from market import get_market
 
-          now = 1800000000
-          storage_box = {}
+          market = get_market()
 
-          alerts.time.time = lambda: now
-          alerts.load_storage = lambda: storage_box.copy()
-          alerts.save_storage = lambda data: storage_box.update(data)
+          expected = ["ZEUS", "PYTH", "W", "JUP", "SKR", "MEW"]
 
-          def test_case(price, direction, previous_level=None, expected_level=9):
-              storage_box.clear()
-              storage_box["ZEUS"] = {
-                  "price_history": [
-                      {
-                          "timestamp": now - 15 * 60,
-                          "price": 100.0
-                      }
-                  ],
-                  "alert_levels": {
-                      "15m": {
-                          "up": previous_level if direction == "up" else None,
-                          "down": previous_level if direction == "down" else None
-                      }
-                  },
-                  "start_volume": None
-              }
+          for symbol in expected:
+              if symbol not in market:
+                  raise RuntimeError(f"Brak danych dla {symbol}")
 
-              message = alerts.check_alerts({
-                  "ZEUS": {
-                      "price": price,
-                      "volume_24h": None
-                  }
-              })
+              price = market[symbol].get("price")
 
-              if not message:
-                  raise RuntimeError("Brak oczekiwanego alertu")
+              if price is None or float(price) <= 0:
+                  raise RuntimeError(f"Nieprawidłowa cena {symbol}")
 
-              expected_text = f"próg {'-' if direction == 'down' else ''}{expected_level}%"
+              print(f"OK {symbol}: ${price}")
 
-              if expected_text not in message:
-                  raise RuntimeError(f"Nieprawidłowy próg: {message}")
-
-              print("OK:", message)
-
-          test_case(110, "up", expected_level=9)
-          test_case(90, "down", expected_level=9)
-          test_case(120, "up", previous_level=9, expected_level=18)
-
-          print("TEST LOGIKI ALERTÓW ZAKOŃCZONY")
+          print("TEST DEX SCREENER ZAKOŃCZONY")
           PY
