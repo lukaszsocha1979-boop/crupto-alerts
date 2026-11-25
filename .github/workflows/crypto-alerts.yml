@@ -107,6 +107,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          git pull --rebase origin main
           git add storage.json
           if [ -f telegram_test_status.txt ]; then
             git add telegram_test_status.txt
@@ -116,7 +117,14 @@ jobs:
             echo "Brak zmian w storage.json."
           else
             git commit -m "Update crypto alerts storage"
-            git push
+            for attempt in 1 2 3; do
+              if git push; then
+                break
+              fi
+              echo "Push odrzucony — pobieram najnowszy main i ponawiam ($attempt/3)..."
+              git pull --rebase origin main
+            done
+            git push --dry-run
           fi
 
           echo "Zakończono jedno sprawdzenie."
