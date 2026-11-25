@@ -10,8 +10,6 @@ on:
     paths-ignore:
       - storage.json
       - telegram_test_status.txt
-  schedule:
-    - cron: '*/5 * * * *'
 
 concurrency:
   group: crypto-alerts
