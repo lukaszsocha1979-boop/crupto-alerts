@@ -1,0 +1,84 @@
+
+name: Crypto Alerts - Test logiki
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Zainstaluj Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Zainstaluj biblioteki
+        run: |
+          pip install -r requirements.txt
+
+      - name: Test progów alertów
+        run: |
+          python - <<'PY'
+          import alerts
+
+          now = 1800000000
+          storage_box = {}
+
+          alerts.time.time = lambda: now
+          alerts.load_storage = lambda: storage_box.copy()
+          alerts.save_storage = lambda data: storage_box.update(data)
+
+          def run_test(price):
+              return alerts.check_alerts({
+                  "ZEUS": {
+                      "price": price,
+                      "volume_24h": None
+                  }
+              })
+
+          storage_box["ZEUS"] = {
+              "price_history": [
+                  {
+                      "timestamp": now - 900,
+                      "price": 100.0
+                  }
+              ],
+              "alert_levels": {},
+              "start_volume": None
+          }
+
+          # Pierwszy wzrost +10%: oczekujemy progu 9%.
+          result = run_test(110)
+          assert result and "próg 9%" in result, result
+          print("OK: pierwszy alert +9%")
+
+          # Bez ponownego alertu, gdy cena pozostaje powyżej progu.
+          result = run_test(111)
+          assert result is None, result
+          print("OK: brak powtórnego alertu")
+
+          # Zejście poniżej progu.
+          result = run_test(108)
+          assert result is None, result
+          print("OK: ponowne uzbrojenie progu")
+
+          # Ponowne przekroczenie progu.
+          result = run_test(110)
+          assert result and "próg 9%" in result, result
+          print("OK: ponowny alert +9%")
+
+          # Wybicie kolejnego progu +18%.
+          result = run_test(120)
+          assert result and "próg 18%" in result, result
+          print("OK: kolejny alert +18%")
+
+          print("TEST LOGIKI ALERTÓW ZAKOŃCZONY SUKCESEM")
+          PY
