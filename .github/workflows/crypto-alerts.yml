@@ -117,14 +117,19 @@ jobs:
             echo "Brak zmian w storage.json."
           else
             git commit -m "Update crypto alerts storage"
+            pushed=false
             for attempt in 1 2 3; do
               if git push; then
+                pushed=true
                 break
               fi
               echo "Push odrzucony — pobieram najnowszy main i ponawiam ($attempt/3)..."
               git pull --rebase origin main
             done
-            git push --dry-run
+            if [ "$pushed" != "true" ]; then
+              echo "Nie udało się zapisać storage.json po 3 próbach."
+              exit 1
+            fi
           fi
 
           echo "Zakończono jedno sprawdzenie."
