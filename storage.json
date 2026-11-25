@@ -1,14 +1,13 @@
-
 {
     "ZEUS": {
         "start_price": 0.002655948150505302,
-        "start_volume": null,
+        "start_volume": 58531.6,
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
             {
-                "timestamp": 1795425159,
-                "price": 0.004278712891548473
+                "timestamp": 1795588660.0,
+                "price": 0.004351
             }
         ],
         "alert_levels": {
@@ -32,13 +31,13 @@
     },
     "PYTH": {
         "start_price": 0.05717959649440031,
-        "start_volume": null,
+        "start_volume": 101175.41,
         "last_up_alert": null,
         "last_down_alert": 11,
         "price_history": [
             {
-                "timestamp": 1795425159,
-                "price": 0.051688718359682466
+                "timestamp": 1795588660.0,
+                "price": 0.04844
             }
         ],
         "alert_levels": {
@@ -62,13 +61,13 @@
     },
     "W": {
         "start_price": 0.00959132108691356,
-        "start_volume": null,
+        "start_volume": 6309.13,
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
             {
-                "timestamp": 1795425159,
-                "price": 0.008609445740052998
+                "timestamp": 1795588660.0,
+                "price": 0.008096
             }
         ],
         "alert_levels": {
@@ -92,13 +91,13 @@
     },
     "JUP": {
         "start_price": 0.22232049674437163,
-        "start_volume": null,
+        "start_volume": 532152.55,
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
             {
-                "timestamp": 1795425159,
-                "price": 0.24156004921377341
+                "timestamp": 1795588660.0,
+                "price": 0.2183
             }
         ],
         "alert_levels": {
@@ -122,13 +121,13 @@
     },
     "MEW": {
         "start_price": 0.0004203395750078454,
-        "start_volume": null,
+        "start_volume": 163805.62,
         "last_up_alert": null,
         "last_down_alert": null,
         "price_history": [
             {
-                "timestamp": 1795425159,
-                "price": 0.0002899060078441969
+                "timestamp": 1795588660.0,
+                "price": 0.0002862
             }
         ],
         "alert_levels": {
@@ -153,8 +152,8 @@
     "SKR": {
         "price_history": [
             {
-                "timestamp": 1795425159,
-                "price": 0.009657192256012056
+                "timestamp": 1795588660.0,
+                "price": 0.00893
             }
         ],
         "alert_levels": {
@@ -179,6 +178,6 @@
                 "down": null
             }
         },
-        "start_volume": null
+        "start_volume": 59305.03
     }
 }
