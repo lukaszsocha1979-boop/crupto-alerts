@@ -118,7 +118,6 @@ jobs:
             git commit -m "Update crypto alerts storage"
             git pull --rebase origin main
             git push
-            fi
           fi
 
           echo "Zakończono jedno sprawdzenie."
