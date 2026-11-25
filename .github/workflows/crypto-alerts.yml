@@ -3,6 +3,11 @@ name: Crypto Alerts
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - storage.json
   schedule:
     - cron: '3-59/5 * * * *'
 
