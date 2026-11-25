@@ -43,6 +43,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
         run: |
           echo "=== STORAGE BEFORE RUN ==="
@@ -70,7 +71,7 @@ jobs:
           echo "Uruchamiam Crypto Alerts..."
           python main.py
 
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [[ "${GITHUB_HEAD_COMMIT_MESSAGE}" == *"Verify Telegram delivery"* ]]; then
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [[ "${GITHUB_COMMIT_MESSAGE}" == *"Verify Telegram delivery"* ]]; then
             echo "Wykonuję jednorazowy test wysyłki Telegram..."
             python - <<'PY'
           from telegram_sender import send_test
@@ -107,7 +108,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add storage.json telegram_test_status.txt
+          git add storage.json
+          if [ -f telegram_test_status.txt ]; then
+            git add telegram_test_status.txt
+          fi
 
           if git diff --cached --quiet; then
             echo "Brak zmian w storage.json."
