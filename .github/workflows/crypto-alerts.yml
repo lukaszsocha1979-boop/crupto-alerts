@@ -1,15 +1,8 @@
 
 name: Crypto Alerts
-# Telegram delivery verification is triggered by the dedicated commit message.
-
+# Manual run only. The separate scheduler owns the five-minute cadence.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - storage.json
-      - telegram_test_status.txt
 
 concurrency:
   group: crypto-alerts
