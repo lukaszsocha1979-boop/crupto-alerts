@@ -1,7 +1,7 @@
 
 """
 Crypto Alerts
-Alerts v1.7
+Alerts v1.8
 
 Interwały:
 15m / 30m / 1h / 4h / 1d
@@ -9,6 +9,10 @@ Interwały:
 Progi:
 9% / 18% / 24% / 30%
 Następnie co 6%.
+
+Ponowne alerty:
+Próg zostaje ponownie uzbrojony po zejściu
+zmiany ceny poniżej jego wartości.
 """
 
 import time
@@ -89,27 +93,38 @@ def _highest_reached_level(change):
     return max(reached) if reached else None
 
 
-def _next_level(previous_level, current_change):
+def _update_alert_level(previous_level, current_change):
     """
-    Zwraca najwyższy nowo osiągnięty próg.
-    Nie wysyła zaległych alertów w kolejnych uruchomieniach.
+    Aktualizuje poziom alertu.
+
+    Zwraca:
+    - nowy zapamiętany poziom,
+    - poziom, dla którego należy wysłać alert.
+
+    Po zejściu poniżej poprzedniego progu
+    próg zostaje ponownie uzbrojony.
     """
 
     highest = _highest_reached_level(current_change)
 
-    if highest is None:
-        return None
-
     if previous_level is None:
-        return highest
+        return highest, highest
 
     if not _valid_level(previous_level):
-        return highest
+        return highest, highest
 
-    if highest > float(previous_level):
-        return highest
+    previous_level = float(previous_level)
 
-    return None
+    if highest is None:
+        return None, None
+
+    if highest > previous_level:
+        return highest, highest
+
+    if highest < previous_level:
+        return highest, None
+
+    return previous_level, None
 
 
 def _find_price(history, target_time):
@@ -243,44 +258,48 @@ def check_alerts(market):
             # Ruch wzrostowy.
             if change > 0:
 
-                # Reset poprzedniego stanu spadkowego.
                 interval_state["down"] = None
 
-                level = _next_level(
+                new_level, alert_level = _update_alert_level(
                     interval_state.get("up"),
                     change
                 )
 
-                if level is not None:
+                interval_state["up"] = new_level
+
+                if alert_level is not None:
 
                     messages.append(
                         f"{GREEN} {symbol} "
                         f"+{change:.2f}% / {interval_name} "
-                        f"(próg {level}%)"
+                        f"(próg {alert_level}%)"
                     )
-
-                    interval_state["up"] = level
 
             # Ruch spadkowy.
             elif change < 0:
 
-                # Reset poprzedniego stanu wzrostowego.
                 interval_state["up"] = None
 
-                level = _next_level(
+                new_level, alert_level = _update_alert_level(
                     interval_state.get("down"),
                     change
                 )
 
-                if level is not None:
+                interval_state["down"] = new_level
+
+                if alert_level is not None:
 
                     messages.append(
                         f"{RED} {symbol} "
                         f"{change:.2f}% / {interval_name} "
-                        f"(próg -{level}%)"
+                        f"(próg -{alert_level}%)"
                     )
 
-                    interval_state["down"] = level
+            # Powrót dokładnie do poziomu odniesienia.
+            else:
+
+                interval_state["up"] = None
+                interval_state["down"] = None
 
             alert_levels[interval_name] = interval_state
 
