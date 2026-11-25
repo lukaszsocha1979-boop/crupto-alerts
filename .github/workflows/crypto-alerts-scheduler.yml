@@ -2,6 +2,8 @@ name: Crypto Alerts Scheduler
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "2-59/5 * * * *"
 
 concurrency:
   group: crypto-alerts
