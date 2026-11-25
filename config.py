@@ -12,6 +12,9 @@ import os
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+# Birdeye API (używane przez moduły diagnostyczne)
+BIRDEYE_API_KEY = os.getenv("BIRDEYE_API_KEY")
+
 # Progi alertów cenowych
 NEXT_PRICE_ALERT_STEP = 6
 
