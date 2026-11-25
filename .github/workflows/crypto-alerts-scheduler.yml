@@ -1,6 +1,10 @@
 name: Crypto Alerts Scheduler
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/crypto-alerts-scheduler.yml
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
