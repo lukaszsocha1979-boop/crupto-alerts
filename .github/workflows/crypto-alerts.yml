@@ -8,6 +8,7 @@ on:
       - main
     paths-ignore:
       - storage.json
+      - telegram_test_status.txt
   schedule:
     - cron: '3-59/5 * * * *'
 
@@ -69,6 +70,18 @@ jobs:
           echo "Uruchamiam Crypto Alerts..."
           python main.py
 
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [[ "${GITHUB_HEAD_COMMIT_MESSAGE}" == *"Verify Telegram delivery"* ]]; then
+            echo "Wykonuję jednorazowy test wysyłki Telegram..."
+            python - <<'PY'
+          from telegram_sender import send_test
+
+          if not send_test():
+              raise SystemExit("TEST TELEGRAM NIEUDANY")
+          print("TEST TELEGRAM ZAKOŃCZONY SUKCESEM")
+          PY
+            date -u +"Telegram test OK: %Y-%m-%dT%H:%M:%SZ" > telegram_test_status.txt
+          fi
+
           echo "=== STORAGE AFTER RUN ==="
 
           if [ -f storage.json ]; then
@@ -94,7 +107,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add storage.json
+          git add storage.json telegram_test_status.txt
 
           if git diff --cached --quiet; then
             echo "Brak zmian w storage.json."
