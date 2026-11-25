@@ -116,20 +116,8 @@ jobs:
             echo "Brak zmian w storage.json."
           else
             git commit -m "Update crypto alerts storage"
-            pushed=false
-            for attempt in 1 2 3; do
-              if git pull --rebase origin main && git push; then
-                pushed=true
-                break
-              fi
-              echo "Zapis odrzucony — ponawiam po pobraniu najnowszego main ($attempt/3)..."
-              git rebase --abort || true
-              git fetch origin main
-              git reset --soft origin/main
-            done
-            if [ "$pushed" != "true" ]; then
-              echo "Nie udało się zapisać storage.json po 3 próbach."
-              exit 1
+            git pull --rebase origin main
+            git push
             fi
           fi
 
