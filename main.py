@@ -60,7 +60,7 @@ def main():
                 messages.append(news)
 
         if messages:
-            sent = send_message("\\n\\n".join(messages))
+            sent = send_message("\n\n".join(messages))
             if not sent:
                 raise RuntimeError("Nie udało się wysłać alertu na Telegram.")
         else:
