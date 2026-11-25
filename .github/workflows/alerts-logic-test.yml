@@ -24,7 +24,7 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Test progów alertów
+      - name: Test wzrostów, spadków i ponownych alertów
         run: |
           python - <<'PY'
           import alerts
@@ -36,6 +36,19 @@ jobs:
           alerts.load_storage = lambda: storage_box.copy()
           alerts.save_storage = lambda data: storage_box.update(data)
 
+          def prepare(direction):
+              storage_box.clear()
+              storage_box["ZEUS"] = {
+                  "price_history": [
+                      {
+                          "timestamp": now - 900,
+                          "price": 100.0
+                      }
+                  ],
+                  "alert_levels": {},
+                  "start_volume": None
+              }
+
           def run_test(price):
               return alerts.check_alerts({
                   "ZEUS": {
@@ -44,41 +57,82 @@ jobs:
                   }
               })
 
+          def expect_alert(price, level, direction):
+              result = run_test(price)
+              sign = "-" if direction == "down" else ""
+              expected = f"próg {sign}{level}%"
+              assert result and expected in result, (
+                  f"Oczekiwano {expected}, otrzymano: {result}"
+              )
+              print(f"OK: {direction} {expected}")
+
+          def expect_no_alert(price):
+              result = run_test(price)
+              assert result is None, (
+                  f"Nieoczekiwany alert: {result}"
+              )
+              print("OK: brak niepotrzebnego alertu")
+
+          # WZROSTY
+          prepare("up")
+
+          expect_alert(110, 9, "up")
+          expect_no_alert(111)
+          expect_no_alert(108)
+          expect_alert(110, 9, "up")
+
+          expect_alert(120, 18, "up")
+          expect_alert(124, 24, "up")
+          expect_alert(130, 30, "up")
+          expect_alert(136, 36, "up")
+          expect_alert(142, 42, "up")
+
+          # SPADKI
+          prepare("down")
+
+          expect_alert(90, 9, "down")
+          expect_no_alert(89)
+          expect_no_alert(92)
+          expect_alert(90, 9, "down")
+
+          expect_alert(80, 18, "down")
+          expect_alert(76, 24, "down")
+          expect_alert(70, 30, "down")
+          expect_alert(64, 36, "down")
+          expect_alert(58, 42, "down")
+
+          # WSZYSTKIE INTERWAŁY
+          storage_box.clear()
+
+          intervals = {
+              "15m": 15 * 60,
+              "30m": 30 * 60,
+              "1h": 60 * 60,
+              "4h": 4 * 60 * 60,
+              "1d": 24 * 60 * 60
+          }
+
           storage_box["ZEUS"] = {
               "price_history": [
                   {
-                      "timestamp": now - 900,
+                      "timestamp": now - seconds,
                       "price": 100.0
                   }
+                  for seconds in intervals.values()
               ],
               "alert_levels": {},
               "start_volume": None
           }
 
-          # Pierwszy wzrost +10%: oczekujemy progu 9%.
           result = run_test(110)
-          assert result and "próg 9%" in result, result
-          print("OK: pierwszy alert +9%")
 
-          # Bez ponownego alertu, gdy cena pozostaje powyżej progu.
-          result = run_test(111)
-          assert result is None, result
-          print("OK: brak powtórnego alertu")
+          assert result is not None, "Brak alertów interwałowych"
 
-          # Zejście poniżej progu.
-          result = run_test(108)
-          assert result is None, result
-          print("OK: ponowne uzbrojenie progu")
+          for interval in intervals:
+              assert f"/ {interval}" in result, (
+                  f"Brak alertu dla interwału {interval}: {result}"
+              )
+              print(f"OK: interwał {interval}")
 
-          # Ponowne przekroczenie progu.
-          result = run_test(110)
-          assert result and "próg 9%" in result, result
-          print("OK: ponowny alert +9%")
-
-          # Wybicie kolejnego progu +18%.
-          result = run_test(120)
-          assert result and "próg 18%" in result, result
-          print("OK: kolejny alert +18%")
-
-          print("TEST LOGIKI ALERTÓW ZAKOŃCZONY SUKCESEM")
+          print("WSZYSTKIE TESTY LOGIKI ZAKOŃCZONE SUKCESEM")
           PY
