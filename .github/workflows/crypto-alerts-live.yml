@@ -2,6 +2,8 @@ name: Crypto Alerts Scheduler
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [crypto_alerts_tick]
   schedule:
     - cron: '3-58/5 * * * *'
 
