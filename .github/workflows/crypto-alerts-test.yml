@@ -11,6 +11,7 @@ on:
       - 'requirements.txt'
       - '.github/workflows/crypto-alerts-test.yml'
       - '.github/workflows/crypto-alerts-scheduler.yml'
+      - '.github/workflows/crypto-alerts-live.yml'
 
 permissions:
   contents: read
