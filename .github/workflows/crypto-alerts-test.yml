@@ -10,6 +10,7 @@ on:
       - '**.py'
       - 'requirements.txt'
       - '.github/workflows/crypto-alerts-test.yml'
+      - '.github/workflows/crypto-alerts-scheduler.yml'
 
 permissions:
   contents: read
