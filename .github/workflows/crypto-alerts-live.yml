@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [crypto_alerts_tick]
+  schedule:
+    - cron: '*/5 * * * *'
 
 concurrency:
   group: crypto-alerts
