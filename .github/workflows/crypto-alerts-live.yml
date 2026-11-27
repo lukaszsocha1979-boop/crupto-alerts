@@ -5,7 +5,7 @@ on:
   repository_dispatch:
     types: [crypto_alerts_tick]
   schedule:
-    - cron: '3-58/5 * * * *'
+    - cron: '*/5 * * * *'
 
 concurrency:
   group: crypto-alerts
