@@ -188,7 +188,7 @@ def _clean_history(history, current_time):
     return cleaned
 
 
-def check_alerts(market):
+def check_alerts(market, persist=True):
 
     storage = load_storage()
     messages = []
@@ -341,9 +341,15 @@ def check_alerts(market):
 
         storage[symbol] = token
 
-    save_storage(storage)
+    # W trybie transakcyjnym stan zwracamy do main.py i zapisujemy
+    # dopiero po skutecznej wysyłce Telegrama (jeśli alert istnieje).
+    if persist:
+        save_storage(storage)
 
-    if not messages:
-        return None
+        if not messages:
+            return None
 
-    return "\n".join(messages)
+        return "\n".join(messages)
+
+    message = "\n".join(messages) if messages else None
+    return message, storage
