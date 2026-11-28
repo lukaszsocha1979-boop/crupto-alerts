@@ -10,7 +10,9 @@ on:
   repository_dispatch:
     types: [crypto_alerts_tick]
   schedule:
-    - cron: '*/5 * * * *'
+    # Przesunięcie poza granice pięciominutowych okien zmniejsza ryzyko
+    # opóźnień harmonogramu GitHub Actions w godzinach dużego obciążenia.
+    - cron: '2-59/5 * * * *'
 
 concurrency:
   group: crypto-alerts
