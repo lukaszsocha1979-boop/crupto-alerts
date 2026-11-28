@@ -71,7 +71,7 @@ def send_test():
     """
 
     message = (
-        "🟢 <b>Crypto Alerts</b>\\n\\n"
+        "🟢 <b>Crypto Alerts</b>\n\n"
         "Połączenie z Telegram działa poprawnie ✅"
     )
 
