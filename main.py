@@ -11,6 +11,7 @@ from market import get_market
 from alerts import check_alerts
 from news import get_news
 from telegram_sender import send_message
+from storage import save_storage
 
 
 def validate_market(market):
@@ -48,7 +49,7 @@ def main():
         validate_market(market)
 
         messages = []
-        alerts = check_alerts(market)
+        alerts, pending_storage = check_alerts(market, persist=False)
         if alerts:
             messages.append(alerts)
 
@@ -65,6 +66,10 @@ def main():
                 raise RuntimeError("Nie udało się wysłać alertu na Telegram.")
         else:
             print("ℹ️ Brak nowych alertów.")
+
+        # Zapisujemy historię i progi dopiero po potwierdzonej wysyłce
+        # albo po przebiegu bez alertów. Błąd Telegrama nie zużywa progu.
+        save_storage(pending_storage)
 
         print("✅ Crypto Alerts zakończył działanie.")
 
