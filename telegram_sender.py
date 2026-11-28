@@ -1,6 +1,6 @@
 """
 Crypto Alerts
-Telegram Sender v1.1
+Telegram Sender v1.2
 """
 
 import requests
@@ -13,7 +13,8 @@ from config import (
 
 def send_message(message: str) -> bool:
     """
-    Wysyła wiadomość na Telegram.
+    Wysyła wiadomość na Telegram i wymaga potwierdzenia ok=true
+    zwróconego przez Telegram Bot API.
     """
 
     if not TELEGRAM_BOT_TOKEN:
@@ -24,8 +25,6 @@ def send_message(message: str) -> bool:
         print("❌ Brak TELEGRAM_CHAT_ID")
         return False
 
-    message = str(message)
-
     url = (
         f"https://api.telegram.org/bot"
         f"{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -33,30 +32,37 @@ def send_message(message: str) -> bool:
 
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
+        "text": str(message),
         "parse_mode": "HTML"
     }
 
     try:
-
         response = requests.post(
             url,
             json=payload,
             timeout=15
         )
-
-        response.raise_for_status()
-
-        print("✅ Telegram OK")
-        return True
-
     except requests.exceptions.RequestException as e:
-        print(f"❌ Telegram error: {e}")
+        # Nie wypisujemy treści wyjątku: URL żądania zawiera token bota.
+        print(f"❌ Telegram error: {type(e).__name__}")
         return False
 
-    except Exception as e:
-        print(f"❌ Nieoczekiwany błąd: {e}")
+    if response.status_code != 200:
+        print(f"❌ Telegram HTTP error: {response.status_code}")
         return False
+
+    try:
+        result = response.json()
+    except ValueError:
+        print("❌ Telegram zwrócił nieprawidłowy JSON.")
+        return False
+
+    if not isinstance(result, dict) or result.get("ok") is not True:
+        print("❌ Telegram API nie potwierdziło wysłania (ok != true).")
+        return False
+
+    print("✅ Telegram OK (HTTP 200, API ok=true)")
+    return True
 
 
 def send_test():
@@ -65,7 +71,7 @@ def send_test():
     """
 
     message = (
-        "🟢 <b>Crypto Alerts</b>\n\n"
+        "🟢 <b>Crypto Alerts</b>\\n\\n"
         "Połączenie z Telegram działa poprawnie ✅"
     )
 
