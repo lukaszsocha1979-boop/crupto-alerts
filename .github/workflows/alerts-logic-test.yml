@@ -3,6 +3,13 @@ name: Crypto Alerts - Test logiki
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'alerts.py'
+      - 'storage.py'
+      - '.github/workflows/alerts-logic-test.yml'
 
 permissions:
   contents: read
